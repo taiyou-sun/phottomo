@@ -151,7 +151,8 @@ const styles = StyleSheet.create({
     alignItems: 'center' as const,
     justifyContent: 'space-between' as const,
     paddingHorizontal: 20,
-    paddingVertical: 12,
+    paddingTop: 8,
+    paddingBottom: 12,
   },
   headerTitle: {
     fontSize: 20,
