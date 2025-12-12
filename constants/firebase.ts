@@ -2,12 +2,13 @@ import { initializeApp } from 'firebase/app';
 import { getAuth } from 'firebase/auth';
 
 const firebaseConfig = {
-  apiKey: "YOUR_API_KEY",
-  authDomain: "YOUR_AUTH_DOMAIN",
-  projectId: "YOUR_PROJECT_ID",
-  storageBucket: "YOUR_STORAGE_BUCKET",
-  messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-  appId: "YOUR_APP_ID"
+  apiKey: "AIzaSyB73mTKh7UGbOANTwr7Nx-XfTPtnnYqx1U",
+  authDomain: "phottomo.firebaseapp.com",
+  projectId: "phottomo",
+  storageBucket: "phottomo.firebasestorage.app",
+  messagingSenderId: "809942392730",
+  appId: "1:809942392730:web:834b00f3a98b8a2f782423",
+  measurementId: "G-8TTKRPL1JS"
 };
 
 const app = initializeApp(firebaseConfig);
