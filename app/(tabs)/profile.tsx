@@ -143,14 +143,14 @@ const styles = StyleSheet.create({
   },
   headerBackground: {
     backgroundColor: '#2e5f4a',
-    paddingBottom: 20,
+    paddingBottom: 8,
   },
   headerContent: {
     flexDirection: 'row' as const,
     alignItems: 'center' as const,
     justifyContent: 'space-between' as const,
     paddingHorizontal: 20,
-    paddingTop: 8,
+    //paddingTop: 8,
     paddingBottom: 5,
   },
   headerTitle: {
