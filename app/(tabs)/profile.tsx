@@ -143,14 +143,15 @@ const styles = StyleSheet.create({
   },
   headerBackground: {
     backgroundColor: '#2e5f4a',
-    paddingBottom: 50,
+    paddingBottom: 60,
   },
   headerContent: {
     flexDirection: 'row' as const,
     alignItems: 'center' as const,
     justifyContent: 'space-between' as const,
     paddingHorizontal: 20,
-    paddingBottom: 8,
+    paddingTop: 8,
+    paddingBottom: 12,
   },
   headerTitle: {
     fontSize: 20,
@@ -169,7 +170,7 @@ const styles = StyleSheet.create({
   },
   profileSection: {
     alignItems: 'center' as const,
-    marginTop: -50,
+    marginTop: -60,
     marginBottom: 20,
   },
   avatarContainer: {
@@ -180,9 +181,9 @@ const styles = StyleSheet.create({
     elevation: 8,
   },
   avatar: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
+    width: 90,
+    height: 90,
+    borderRadius: 45,
     backgroundColor: '#2e5f4a',
     borderWidth: 4,
     borderColor: '#fff',
