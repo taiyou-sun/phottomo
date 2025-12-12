@@ -125,7 +125,7 @@ export default function ProfileScreen() {
   return (
     <View style={styles.container}>
       {/* Header with Custom Safe Area Handling */}
-      <View style={[styles.headerBackground, { paddingTop: insets.top + 50 }]}>
+      <View style={[styles.headerBackground, { paddingTop: insets.top}]}>
         <View style={styles.headerContent}>
           <Text style={styles.headerTitle}>プロフィール</Text>
           <TouchableOpacity style={styles.editButton} onPress={handleEditPress}>
