@@ -82,9 +82,10 @@ export default function SignUpScreen({ onNavigateToLogin }: SignUpScreenProps) {
       >
         <View style={styles.content}>
           <Image
-            source={require('@/assets/images/phottomo.jpeg')}
+            source={{ uri: 'https://rork.app/pa/c3ztgkrs1u48bxyfq9kco/phottomo' }}
             style={styles.logo}
             contentFit="contain"
+            cachePolicy="memory-disk"
           />
 
           <Text style={styles.title}>新規登録</Text>
