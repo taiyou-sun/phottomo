@@ -1,13 +1,15 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Animated } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Animated, TextInput } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Settings } from 'lucide-react-native';
+import { Settings, Edit3 } from 'lucide-react-native';
 import { useApp } from '@/contexts/AppContext';
 import { shootingIntents, transformAdviceByStyle } from '@/mocks/adviceData';
 
 export default function AdviceScreen() {
   const { photoData, coachingStyle, navigateToScreen, resetAll } = useApp();
   const [selectedIntent, setSelectedIntent] = React.useState<string | null>(null);
+  const [customIntent, setCustomIntent] = React.useState<string>('');
+  const [showCustomInput, setShowCustomInput] = React.useState<boolean>(false);
   const fadeAnim = React.useRef(new Animated.Value(0)).current;
 
   React.useEffect(() => {
@@ -29,9 +31,23 @@ export default function AdviceScreen() {
   }
 
   const selectedIntentData = shootingIntents.find((intent) => intent.id === selectedIntent);
-  const transformedAdvice = selectedIntentData
-    ? transformAdviceByStyle(selectedIntentData.baseAdvice, coachingStyle)
-    : [];
+  
+  const getTransformedAdvice = () => {
+    if (selectedIntent === 'custom' && customIntent.trim()) {
+      const baseAdvice = [
+        `「${customIntent}」という意図に合わせて、構図を工夫してみましょう`,
+        '光の向きと強さを意識すると、より表現力が高まります',
+        '撮影設定を調整して、意図した雰囲気を作り出しましょう',
+        '何度も撮り直して、ベストな一枚を探してみてください',
+      ];
+      return transformAdviceByStyle(baseAdvice, coachingStyle);
+    }
+    return selectedIntentData
+      ? transformAdviceByStyle(selectedIntentData.baseAdvice, coachingStyle)
+      : [];
+  };
+  
+  const transformedAdvice = getTransformedAdvice();
 
   return (
     <View style={styles.container}>
@@ -80,7 +96,10 @@ export default function AdviceScreen() {
                     styles.intentCard,
                     selectedIntent === intent.id && styles.intentCardSelected,
                   ]}
-                  onPress={() => setSelectedIntent(intent.id)}
+                  onPress={() => {
+                    setSelectedIntent(intent.id);
+                    setShowCustomInput(false);
+                  }}
                   testID={`intent-${intent.id}`}
                 >
                   <Text
@@ -101,9 +120,57 @@ export default function AdviceScreen() {
                   </Text>
                 </TouchableOpacity>
               ))}
+              
+              <TouchableOpacity
+                style={[
+                  styles.intentCard,
+                  selectedIntent === 'custom' && styles.intentCardSelected,
+                ]}
+                onPress={() => {
+                  setSelectedIntent('custom');
+                  setShowCustomInput(true);
+                }}
+                testID="intent-custom"
+              >
+                <View style={styles.customIntentHeader}>
+                  <Edit3 size={20} color={selectedIntent === 'custom' ? '#2e7d46' : '#1a4d2e'} />
+                  <Text
+                    style={[
+                      styles.intentTitle,
+                      { marginLeft: 8 },
+                      selectedIntent === 'custom' && styles.intentTitleSelected,
+                    ]}
+                  >
+                    自由に入力
+                  </Text>
+                </View>
+                <Text
+                  style={[
+                    styles.intentDescription,
+                    selectedIntent === 'custom' && styles.intentDescriptionSelected,
+                  ]}
+                >
+                  あなたの撮影意図を自由に入力してください
+                </Text>
+              </TouchableOpacity>
+              
+              {showCustomInput && selectedIntent === 'custom' && (
+                <View style={styles.customInputContainer}>
+                  <TextInput
+                    style={styles.customInput}
+                    placeholder="例：夕暮れの静けさを表現したい"
+                    placeholderTextColor="#9eb09e"
+                    value={customIntent}
+                    onChangeText={setCustomIntent}
+                    multiline
+                    numberOfLines={3}
+                    testID="custom-intent-input"
+                  />
+                </View>
+              )}
             </View>
 
-            {selectedIntentData && (
+            {((selectedIntentData && selectedIntent !== 'custom') || (selectedIntent === 'custom' && customIntent.trim())) && (
               <View style={styles.adviceSection}>
                 <Text style={styles.adviceTitle}>
                   {coachingStyle === 'phottomo' && '📷 '}
@@ -116,32 +183,42 @@ export default function AdviceScreen() {
                   </View>
                 ))}
 
-                <View style={styles.settingsComparison}>
-                  <Text style={styles.comparisonTitle}>現在の設定との比較</Text>
-                  <View style={styles.comparisonTable}>
-                    <View style={styles.comparisonRow}>
-                      <Text style={styles.comparisonLabel}>絞り</Text>
-                      <Text style={styles.comparisonCurrent}>{photoData.aperture}</Text>
-                      <Text style={styles.comparisonRecommended}>
-                        {selectedIntentData.settingsSuggestions.aperture}
-                      </Text>
-                    </View>
-                    <View style={styles.comparisonRow}>
-                      <Text style={styles.comparisonLabel}>ISO</Text>
-                      <Text style={styles.comparisonCurrent}>{photoData.iso}</Text>
-                      <Text style={styles.comparisonRecommended}>
-                        {selectedIntentData.settingsSuggestions.iso}
-                      </Text>
-                    </View>
-                    <View style={styles.comparisonRow}>
-                      <Text style={styles.comparisonLabel}>シャッター</Text>
-                      <Text style={styles.comparisonCurrent}>{photoData.shutterSpeed}</Text>
-                      <Text style={styles.comparisonRecommended}>
-                        {selectedIntentData.settingsSuggestions.shutterSpeed}
-                      </Text>
+                {selectedIntentData && selectedIntent !== 'custom' && (
+                  <View style={styles.settingsComparison}>
+                    <Text style={styles.comparisonTitle}>現在の設定との比較</Text>
+                    <View style={styles.comparisonTable}>
+                      <View style={styles.comparisonRow}>
+                        <Text style={styles.comparisonLabel}>絞り</Text>
+                        <Text style={styles.comparisonCurrent}>{photoData.aperture}</Text>
+                        <Text style={styles.comparisonRecommended}>
+                          {selectedIntentData.settingsSuggestions.aperture}
+                        </Text>
+                      </View>
+                      <View style={styles.comparisonRow}>
+                        <Text style={styles.comparisonLabel}>ISO</Text>
+                        <Text style={styles.comparisonCurrent}>{photoData.iso}</Text>
+                        <Text style={styles.comparisonRecommended}>
+                          {selectedIntentData.settingsSuggestions.iso}
+                        </Text>
+                      </View>
+                      <View style={styles.comparisonRow}>
+                        <Text style={styles.comparisonLabel}>シャッター</Text>
+                        <Text style={styles.comparisonCurrent}>{photoData.shutterSpeed}</Text>
+                        <Text style={styles.comparisonRecommended}>
+                          {selectedIntentData.settingsSuggestions.shutterSpeed}
+                        </Text>
+                      </View>
                     </View>
                   </View>
-                </View>
+                )}
+                
+                {selectedIntent === 'custom' && customIntent.trim() && (
+                  <View style={styles.customIntentNote}>
+                    <Text style={styles.customIntentNoteText}>
+                      💡 カスタム意図のため、設定の比較は表示されません。あなたの意図に合わせて、自由に撮影設定を調整してみてください。
+                    </Text>
+                  </View>
+                )}
               </View>
             )}
 
@@ -149,7 +226,11 @@ export default function AdviceScreen() {
               {selectedIntent && (
                 <TouchableOpacity
                   style={styles.secondaryButton}
-                  onPress={() => setSelectedIntent(null)}
+                  onPress={() => {
+                    setSelectedIntent(null);
+                    setShowCustomInput(false);
+                    setCustomIntent('');
+                  }}
                   testID="change-intent-button"
                 >
                   <Text style={styles.secondaryButtonText}>撮影意図を変更する</Text>
@@ -382,5 +463,35 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600' as const,
     color: '#2e7d46',
+  },
+  customIntentHeader: {
+    flexDirection: 'row' as const,
+    alignItems: 'center' as const,
+  },
+  customInputContainer: {
+    marginTop: 12,
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    padding: 16,
+    borderWidth: 2,
+    borderColor: '#2e7d46',
+  },
+  customInput: {
+    fontSize: 15,
+    color: '#1a4d2e',
+    minHeight: 80,
+    textAlignVertical: 'top' as const,
+    lineHeight: 22,
+  },
+  customIntentNote: {
+    marginTop: 20,
+    paddingTop: 20,
+    borderTopWidth: 1,
+    borderTopColor: '#e8ebe8',
+  },
+  customIntentNoteText: {
+    fontSize: 14,
+    color: '#5a7c5f',
+    lineHeight: 20,
   },
 });
