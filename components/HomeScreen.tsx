@@ -5,7 +5,7 @@ import { Camera, Zap, Search, Settings } from 'lucide-react-native';
 import { useApp } from '@/contexts/AppContext';
 
 export default function HomeScreen() {
-  const { navigateToScreen } = useApp();
+  const { navigateToScreen, coachingStyle } = useApp();
   const insets = useSafeAreaInsets();
   const fadeAnim = React.useRef(new Animated.Value(0)).current;
   const slideAnim = React.useRef(new Animated.Value(30)).current;
@@ -86,7 +86,22 @@ export default function HomeScreen() {
   return (
     <View style={styles.container}>
       <View style={[styles.header, { paddingTop: Math.max(insets.top, 20) + 10 }]}>
-        <Text style={styles.appName}>ふぉっとも</Text>
+        <View>
+          <Text style={styles.appName}>ふぉっとも</Text>
+          <View style={styles.stylePill}>
+            {(() => {
+              const styleInfo: Record<string, { name: string; emoji: string }> = {
+                phottomo: { name: 'ふぉっとも君', emoji: '📷' },
+                logical: { name: 'ロジカル博士', emoji: '🔬' },
+                supportive: { name: '寄り添いカウンセラー', emoji: '🤝' },
+                spartan: { name: 'スパルタ鬼軍曹', emoji: '💪' },
+              };
+              const s = styleInfo[coachingStyle] || styleInfo.phottomo;
+              return <Text style={styles.stylePillText}>{s.emoji} {s.name}</Text>;
+            })()}
+          </View>
+        </View>
+
         <TouchableOpacity
           onPress={() => navigateToScreen('settings')}
           style={styles.settingsButton}
@@ -116,6 +131,23 @@ export default function HomeScreen() {
             <Text style={styles.title}>ふぉっとも</Text>
             <Text style={styles.subtitle}>AIコーチングで写真が上達</Text>
           </Animated.View>
+
+          <View style={styles.currentStyleWrapper}>
+            {(() => {
+              const styleInfo: Record<string, { name: string; emoji: string }> = {
+                phottomo: { name: 'ふぉっとも君', emoji: '📷' },
+                logical: { name: 'ロジカル博士', emoji: '🔬' },
+                supportive: { name: '寄り添いカウンセラー', emoji: '🤝' },
+                spartan: { name: 'スパルタ鬼軍曹', emoji: '💪' },
+              };
+              const s = styleInfo[coachingStyle] || styleInfo.phottomo;
+              return (
+                <View style={styles.stylePill}>
+                  <Text style={styles.stylePillText}>{s.emoji} {s.name} を選択中</Text>
+                </View>
+              );
+            })()}
+          </View>
 
           <View style={styles.actionsContainer}>
             <ActionCard
@@ -167,6 +199,23 @@ const styles = StyleSheet.create({
     fontWeight: '700' as const,
     color: '#1a4d2e',
     letterSpacing: 0.5,
+  },
+  stylePill: {
+    marginTop: 6,
+    backgroundColor: '#eef7ee',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#e0f0e2',
+  },
+  stylePillText: {
+    fontSize: 12,
+    color: '#2a3a2a',
+  },
+  currentStyleWrapper: {
+    alignItems: 'center' as const,
+    marginVertical: 12,
   },
   settingsButton: {
     padding: 8,
