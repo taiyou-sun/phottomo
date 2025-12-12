@@ -6,8 +6,12 @@ import {
   signOut as firebaseSignOut,
   onAuthStateChanged,
   User,
-  sendPasswordResetEmail
+  sendPasswordResetEmail,
+  setPersistence,
+  browserLocalPersistence
 } from 'firebase/auth';
+import { Platform } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { auth } from '@/constants/firebase';
 
 export const [AuthContextProvider, useAuth] = createContextHook(() => {
@@ -16,10 +20,35 @@ export const [AuthContextProvider, useAuth] = createContextHook(() => {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
+    const initAuth = async () => {
+      try {
+        if (Platform.OS === 'web') {
+          await setPersistence(auth, browserLocalPersistence);
+        } else {
+          const storedUid = await AsyncStorage.getItem('userUid');
+          console.log('Stored UID:', storedUid);
+        }
+      } catch (error) {
+        console.error('Error setting persistence:', error);
+      }
+    };
+
+    initAuth();
+
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
       console.log('Auth state changed:', user?.email);
       setUser(user);
       setLoading(false);
+      
+      if (Platform.OS !== 'web') {
+        if (user) {
+          await AsyncStorage.setItem('userUid', user.uid);
+          console.log('Saved UID to AsyncStorage:', user.uid);
+        } else {
+          await AsyncStorage.removeItem('userUid');
+          console.log('Removed UID from AsyncStorage');
+        }
+      }
     });
 
     return unsubscribe;
