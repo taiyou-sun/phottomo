@@ -46,7 +46,7 @@ export default function ProfileScreen() {
   return (
     <View style={styles.container}>
       {/* Header with Custom Safe Area Handling */}
-      <View style={[styles.headerBackground, { paddingTop: insets.top, height: 140 }]}> 
+      <View style={[styles.headerBackground, { paddingTop: insets.top }]}>
         <View style={styles.headerContent}>
           <Text style={styles.headerTitle}>プロフィール</Text>
           <TouchableOpacity style={styles.editButton}>
@@ -166,7 +166,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   scrollContent: {
-    paddingBottom: 20,
+    paddingHorizontal: 0,
   },
   profileSection: {
     alignItems: 'center' as const,
