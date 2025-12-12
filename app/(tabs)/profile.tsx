@@ -143,7 +143,7 @@ const styles = StyleSheet.create({
   },
   headerBackground: {
     backgroundColor: '#2e5f4a',
-    paddingBottom: 20,
+    paddingBottom: 50,
   },
   headerContent: {
     flexDirection: 'row' as const,
@@ -169,7 +169,7 @@ const styles = StyleSheet.create({
   },
   profileSection: {
     alignItems: 'center' as const,
-    marginTop: -30,
+    marginTop: -50,
     marginBottom: 20,
   },
   avatarContainer: {
