@@ -33,6 +33,7 @@ export default function ProfileScreen() {
   const [isSendingHelp, setIsSendingHelp] = useState(false);
   const [helpImageUri, setHelpImageUri] = useState<string | null>(null);
   const [isPickingHelpImage, setIsPickingHelpImage] = useState(false);
+  const [isAboutModalVisible, setIsAboutModalVisible] = useState(false);
   
   const handleLogout = async () => {
     Alert.alert(
@@ -210,7 +211,7 @@ export default function ProfileScreen() {
             <SettingItem
               icon={Info}
               label="アプリについて"
-              onPress={() => console.log('アプリについて')}
+              onPress={() => setIsAboutModalVisible(true)}
             />
           </View>
         </View>
@@ -416,6 +417,70 @@ export default function ProfileScreen() {
               >
                 <Text style={styles.saveButtonText}>保存</Text>
               </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
+      {/* About Modal */}
+      <Modal
+        visible={isAboutModalVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setIsAboutModalVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>アプリについて</Text>
+              <TouchableOpacity onPress={() => setIsAboutModalVisible(false)} style={styles.closeButton}>
+                <X size={24} color="#666" />
+              </TouchableOpacity>
+            </View>
+
+            <View style={styles.modalBody}>
+              <ScrollView showsVerticalScrollIndicator={false}>
+                <View style={styles.aboutContainer}>
+                  <View style={styles.appIconPlaceholder}>
+                    <Image source={require('@/assets/images/phottomo.jpeg')} style={styles.appIconImage} />
+                  </View>
+                  <Text style={styles.appNameText}>ふぉっとも</Text>
+                  <Text style={styles.versionText}>バージョン 1.0.0</Text>
+                </View>
+
+                <View style={styles.aboutSection}>
+                  <Text style={styles.aboutSectionTitle}>このアプリについて</Text>
+                  <Text style={styles.aboutText}>
+                    ふぉっとも は、AI コーチングを通じて写真撮影スキルを向上させるためのアプリです。
+                  </Text>
+                  <Text style={styles.aboutText}>
+                    あなたの撮影スタイルに合わせたカメラやレンズの選択肢をAIが提案し、レンズの情報やカメラの基本設定も学ぶことができます。
+                  </Text>
+                </View>
+
+                <View style={styles.aboutSection}>
+                  <Text style={styles.aboutSectionTitle}>機能</Text>
+                  <View style={styles.featureItem}>
+                    <View style={styles.featureBullet} />
+                    <Text style={styles.featureText}>AIコーチングを通じた写真撮影スキル向上</Text>
+                  </View>
+                  <View style={styles.featureItem}>
+                    <View style={styles.featureBullet} />
+                    <Text style={styles.featureText}>あなたに合ったカメラ・レンズの提案</Text>
+                  </View>
+                  <View style={styles.featureItem}>
+                    <View style={styles.featureBullet} />
+                    <Text style={styles.featureText}>撮影統計の追跡とフィードバック</Text>
+                  </View>
+                </View>
+
+                <View style={styles.aboutSection}>
+                  <Text style={styles.aboutSectionTitle}>開発</Text>
+                  <Text style={styles.aboutText}>
+                    © 2025 Phottomo. All rights reserved.
+                  </Text>
+                </View>
+              </ScrollView>
             </View>
           </View>
         </View>
@@ -817,5 +882,68 @@ const styles = StyleSheet.create({
     fontWeight: '700' as const,
     color: '#fff',
     letterSpacing: 0.5,
+  },
+  aboutContainer: {
+    alignItems: 'center' as const,
+    marginBottom: 24,
+  },
+  appIconPlaceholder: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    backgroundColor: 'transparent',
+    alignItems: 'center' as const,
+    justifyContent: 'center' as const,
+    marginBottom: 12,
+    overflow: 'hidden' as const,
+  },
+  appIconImage: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+  },
+  appNameText: {
+    fontSize: 24,
+    fontWeight: '800' as const,
+    color: '#1a4d2e',
+    marginBottom: 4,
+  },
+  versionText: {
+    fontSize: 14,
+    color: '#999',
+  },
+  aboutSection: {
+    marginBottom: 20,
+  },
+  aboutSectionTitle: {
+    fontSize: 16,
+    fontWeight: '700' as const,
+    color: '#1a4d2e',
+    marginBottom: 12,
+  },
+  aboutText: {
+    fontSize: 14,
+    color: '#555',
+    lineHeight: 22,
+    marginBottom: 8,
+  },
+  featureItem: {
+    flexDirection: 'row' as const,
+    alignItems: 'flex-start' as const,
+    marginBottom: 12,
+  },
+  featureBullet: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: '#2e5f4a',
+    marginTop: 8,
+    marginRight: 12,
+  },
+  featureText: {
+    fontSize: 14,
+    color: '#555',
+    flex: 1,
+    lineHeight: 20,
   },
 });
