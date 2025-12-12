@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -6,16 +6,27 @@ import {
   ScrollView,
   TouchableOpacity,
   Alert,
+  Modal,
+  TextInput,
+  Image,
+  ActivityIndicator,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Mail, Camera, Sparkles, ChevronRight, Settings, HelpCircle, Info, Edit } from 'lucide-react-native';
+import { Mail, Camera, Sparkles, ChevronRight, Settings, HelpCircle, Info, Edit, X } from 'lucide-react-native';
 import { useAuth } from '@/contexts/AuthContext';
 import { useRouter } from 'expo-router';
+import * as ImagePicker from 'expo-image-picker';
 
 export default function ProfileScreen() {
   const { user, signOut } = useAuth();
   const insets = useSafeAreaInsets();
   const router = useRouter();
+  
+  const [isEditModalVisible, setIsEditModalVisible] = useState(false);
+  const [avatarUri, setAvatarUri] = useState<string | null>(null);
+  const [cameraName, setCameraName] = useState('Canon EOS R5');
+  const [tempCameraName, setTempCameraName] = useState('Canon EOS R5');
+  const [isLoading, setIsLoading] = useState(false);
   
   const handleLogout = async () => {
     Alert.alert(
@@ -42,6 +53,52 @@ export default function ProfileScreen() {
         },
       ]
     );
+  };
+
+  const handleEditPress = () => {
+    setTempCameraName(cameraName);
+    setIsEditModalVisible(true);
+  };
+
+  const handlePickImage = async () => {
+    try {
+      setIsLoading(true);
+      const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      
+      if (!permissionResult.granted) {
+        Alert.alert('エラー', '写真へのアクセス権限が必要です');
+        setIsLoading(false);
+        return;
+      }
+
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ['images'],
+        allowsEditing: true,
+        aspect: [1, 1],
+        quality: 0.8,
+      });
+
+      if (!result.canceled && result.assets[0]) {
+        setAvatarUri(result.assets[0].uri);
+        console.log('Avatar image selected:', result.assets[0].uri);
+      }
+    } catch (error) {
+      console.error('Image picker error:', error);
+      Alert.alert('エラー', '画像の選択に失敗しました');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleSaveEdit = () => {
+    setCameraName(tempCameraName);
+    setIsEditModalVisible(false);
+    console.log('Profile updated:', { avatarUri, cameraName: tempCameraName });
+  };
+
+  const handleCancelEdit = () => {
+    setTempCameraName(cameraName);
+    setIsEditModalVisible(false);
   };
 
   const StatItem = ({ label, value, color }: { label: string; value: string; color: string }) => (
@@ -71,7 +128,7 @@ export default function ProfileScreen() {
       <View style={[styles.headerBackground, { paddingTop: insets.top + 50 }]}>
         <View style={styles.headerContent}>
           <Text style={styles.headerTitle}>プロフィール</Text>
-          <TouchableOpacity style={styles.editButton}>
+          <TouchableOpacity style={styles.editButton} onPress={handleEditPress}>
             <Edit size={20} color="#fff" />
           </TouchableOpacity>
         </View>
@@ -84,7 +141,11 @@ export default function ProfileScreen() {
       >
         <View style={styles.profileSection}>
           <View style={styles.avatarContainer}>
-            <View style={styles.avatar} />
+            {avatarUri ? (
+              <Image source={{ uri: avatarUri }} style={styles.avatar} />
+            ) : (
+              <View style={styles.avatar} />
+            )}
           </View>
         </View>
 
@@ -103,7 +164,7 @@ export default function ProfileScreen() {
             <Camera size={20} color="#5a7c5f" strokeWidth={2} />
             <View style={styles.infoTextContainer}>
               <Text style={styles.infoLabel}>使用カメラ</Text>
-              <Text style={styles.infoValue}>Canon EOS R5</Text>
+              <Text style={styles.infoValue}>{cameraName}</Text>
             </View>
           </View>
         </View>
@@ -156,6 +217,70 @@ export default function ProfileScreen() {
           <Text style={styles.logoutButtonText}>ログアウト</Text>
         </TouchableOpacity>
       </ScrollView>
+
+      <Modal
+        visible={isEditModalVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={handleCancelEdit}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>プロフィール編集</Text>
+              <TouchableOpacity onPress={handleCancelEdit} style={styles.closeButton}>
+                <X size={24} color="#666" />
+              </TouchableOpacity>
+            </View>
+
+            <View style={styles.modalBody}>
+              <Text style={styles.inputLabel}>プロフィール画像</Text>
+              <TouchableOpacity
+                style={styles.avatarPickerContainer}
+                onPress={handlePickImage}
+                disabled={isLoading}
+              >
+                {isLoading ? (
+                  <ActivityIndicator size="large" color="#2e5f4a" />
+                ) : avatarUri ? (
+                  <Image source={{ uri: avatarUri }} style={styles.avatarPreview} />
+                ) : (
+                  <View style={styles.avatarPlaceholder}>
+                    <Camera size={32} color="#2e5f4a" />
+                    <Text style={styles.avatarPlaceholderText}>画像を選択</Text>
+                  </View>
+                )}
+              </TouchableOpacity>
+
+              <Text style={styles.inputLabel}>使用カメラ</Text>
+              <TextInput
+                style={styles.textInput}
+                value={tempCameraName}
+                onChangeText={setTempCameraName}
+                placeholder="カメラ名を入力"
+                placeholderTextColor="#999"
+              />
+            </View>
+
+            <View style={styles.modalFooter}>
+              <TouchableOpacity
+                style={styles.cancelButton}
+                onPress={handleCancelEdit}
+                activeOpacity={0.7}
+              >
+                <Text style={styles.cancelButtonText}>キャンセル</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.saveButton}
+                onPress={handleSaveEdit}
+                activeOpacity={0.7}
+              >
+                <Text style={styles.saveButtonText}>保存</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }
@@ -210,6 +335,119 @@ const styles = StyleSheet.create({
     backgroundColor: '#2e5f4a',
     borderWidth: 4,
     borderColor: '#fff',
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center' as const,
+    alignItems: 'center' as const,
+    padding: 20,
+  },
+  modalContent: {
+    backgroundColor: '#fff',
+    borderRadius: 20,
+    width: '100%',
+    maxWidth: 400,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 12,
+    elevation: 8,
+  },
+  modalHeader: {
+    flexDirection: 'row' as const,
+    alignItems: 'center' as const,
+    justifyContent: 'space-between' as const,
+    padding: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: '#f0f0f0',
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: '700' as const,
+    color: '#1a4d2e',
+  },
+  closeButton: {
+    padding: 4,
+  },
+  modalBody: {
+    padding: 20,
+  },
+  inputLabel: {
+    fontSize: 14,
+    fontWeight: '600' as const,
+    color: '#1a4d2e',
+    marginBottom: 12,
+  },
+  avatarPickerContainer: {
+    width: 120,
+    height: 120,
+    borderRadius: 60,
+    alignSelf: 'center' as const,
+    marginBottom: 24,
+    overflow: 'hidden' as const,
+  },
+  avatarPreview: {
+    width: '100%',
+    height: '100%',
+    borderRadius: 60,
+  },
+  avatarPlaceholder: {
+    width: '100%',
+    height: '100%',
+    backgroundColor: '#f0f7f4',
+    borderWidth: 2,
+    borderColor: '#2e5f4a',
+    borderStyle: 'dashed' as const,
+    borderRadius: 60,
+    justifyContent: 'center' as const,
+    alignItems: 'center' as const,
+  },
+  avatarPlaceholderText: {
+    fontSize: 12,
+    color: '#2e5f4a',
+    marginTop: 8,
+    fontWeight: '500' as const,
+  },
+  textInput: {
+    backgroundColor: '#f5f7f5',
+    borderRadius: 12,
+    padding: 16,
+    fontSize: 15,
+    color: '#1a4d2e',
+    borderWidth: 1,
+    borderColor: '#e0e0e0',
+  },
+  modalFooter: {
+    flexDirection: 'row' as const,
+    padding: 20,
+    gap: 12,
+    borderTopWidth: 1,
+    borderTopColor: '#f0f0f0',
+  },
+  cancelButton: {
+    flex: 1,
+    paddingVertical: 14,
+    borderRadius: 12,
+    backgroundColor: '#f0f0f0',
+    alignItems: 'center' as const,
+  },
+  cancelButtonText: {
+    fontSize: 16,
+    fontWeight: '600' as const,
+    color: '#666',
+  },
+  saveButton: {
+    flex: 1,
+    paddingVertical: 14,
+    borderRadius: 12,
+    backgroundColor: '#2e5f4a',
+    alignItems: 'center' as const,
+  },
+  saveButtonText: {
+    fontSize: 16,
+    fontWeight: '700' as const,
+    color: '#fff',
   },
   infoCard: {
     backgroundColor: '#fff',
