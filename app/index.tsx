@@ -1,6 +1,8 @@
 import React from 'react';
 import { useApp } from '@/contexts/AppContext';
 import HomeScreen from '@/components/HomeScreen';
+import UploadScreen from '@/components/UploadScreen';
+import ConfirmScreen from '@/components/ConfirmScreen';
 import ConnectingScreen from '@/components/ConnectingScreen';
 import PhotoDataScreen from '@/components/PhotoDataScreen';
 import AdviceScreen from '@/components/AdviceScreen';
@@ -16,6 +18,10 @@ export default function Index() {
   switch (currentScreen) {
     case 'home':
       return <HomeScreen />;
+    case 'upload':
+      return <UploadScreen />;
+    case 'confirm':
+      return <ConfirmScreen />;
     case 'connecting':
       return <ConnectingScreen />;
     case 'photoData':

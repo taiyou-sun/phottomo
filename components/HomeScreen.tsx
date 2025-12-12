@@ -121,8 +121,8 @@ export default function HomeScreen() {
             <ActionCard
               icon={Zap}
               title="AI コーチングを試す"
-              description="カメラ接続からAIアドバイスまで体験"
-              onPress={() => navigateToScreen('connecting')}
+              description="写真と撮影データをアップロードして体験"
+              onPress={() => navigateToScreen('upload')}
               delay={100}
             />
 

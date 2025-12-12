@@ -4,6 +4,8 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export type ScreenName = 
   | 'home' 
+  | 'upload' 
+  | 'confirm' 
   | 'connecting' 
   | 'photoData' 
   | 'advice' 
@@ -24,6 +26,11 @@ export interface PhotoData {
   focalLength: string;
   whiteBalance: string;
   mode: string;
+}
+
+export interface UploadedImages {
+  photoUri: string | null;
+  screenshotUri: string | null;
 }
 
 export interface SurveyAnswers {
@@ -51,6 +58,10 @@ const [AppContextProvider, useApp] = createContextHook(() => {
   const [currentScreen, setCurrentScreen] = useState<ScreenName>('home');
   const [previousScreen, setPreviousScreen] = useState<ScreenName>('home');
   const [photoData, setPhotoData] = useState<PhotoData | null>(null);
+  const [uploadedImages, setUploadedImages] = useState<UploadedImages>({
+    photoUri: null,
+    screenshotUri: null,
+  });
   const [surveyAnswers, setSurveyAnswers] = useState<SurveyAnswers>({});
   const [lensSurveyAnswers, setLensSurveyAnswers] = useState<LensSurveyAnswers>({});
   const [coachingStyle, setCoachingStyle] = useState<CoachingStyle>('phottomo');
@@ -95,8 +106,19 @@ const [AppContextProvider, useApp] = createContextHook(() => {
     setPhotoData(null);
   };
 
+  const resetUploadedImages = () => {
+    setUploadedImages({
+      photoUri: null,
+      screenshotUri: null,
+    });
+  };
+
   const resetAll = () => {
     setPhotoData(null);
+    setUploadedImages({
+      photoUri: null,
+      screenshotUri: null,
+    });
     setSurveyAnswers({});
     setLensSurveyAnswers({});
     setCurrentScreen('home');
@@ -106,17 +128,20 @@ const [AppContextProvider, useApp] = createContextHook(() => {
     currentScreen,
     previousScreen,
     photoData,
+    uploadedImages,
     surveyAnswers,
     lensSurveyAnswers,
     coachingStyle,
     navigateToScreen,
     setPhotoData,
+    setUploadedImages,
     setSurveyAnswers,
     setLensSurveyAnswers,
     setCoachingStyle: saveCoachingStyle,
     resetSurveyAnswers,
     resetLensSurveyAnswers,
     resetPhotoData,
+    resetUploadedImages,
     resetAll,
   };
 });
