@@ -84,7 +84,7 @@ export default function SignUpScreen({ onNavigateToLogin }: SignUpScreenProps) {
           <Image
             source={require('@/assets/images/phottomo.jpeg')}
             style={styles.logo}
-            contentFit="cover"
+            contentFit="contain"
           />
 
           <Text style={styles.title}>新規登録</Text>
@@ -196,6 +196,7 @@ const styles = StyleSheet.create({
     height: 120,
     borderRadius: 60,
     marginBottom: 32,
+    backgroundColor: 'transparent',
   },
   title: {
     fontSize: 40,
