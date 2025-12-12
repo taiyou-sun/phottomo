@@ -19,7 +19,9 @@ import { base64ToUint8Array } from "@/utils";
 export default function ConfirmScreen() {
   const { navigateToScreen, uploadedImages, setPhotoData } = useApp();
   const fadeAnim = React.useRef(new Animated.Value(0)).current;
-  const [extractedData, setExtractedData] = React.useState<PhotoData | null>(null);
+  const [extractedData, setExtractedData] = React.useState<PhotoData | null>(
+    null
+  );
 
   React.useEffect(() => {
     Animated.timing(fadeAnim, {
@@ -32,9 +34,12 @@ export default function ConfirmScreen() {
       if (!uploadedImages.photoUri) return;
 
       try {
-        const base64 = await FileSystem.readAsStringAsync(uploadedImages.photoUri, {
-          encoding: "base64",
-        });
+        const base64 = await FileSystem.readAsStringAsync(
+          uploadedImages.photoUri,
+          {
+            encoding: "base64",
+          }
+        );
         const fileBuffer = base64ToUint8Array(base64);
         const tags = await ExifReader.load(fileBuffer.buffer);
 
@@ -52,13 +57,22 @@ export default function ConfirmScreen() {
           iso: parseInt(getTag(["ISOSpeedRatings", "ISO"]) || "0", 10),
           aperture: getTag(["FNumber"]) ? `F${getTag(["FNumber"])}` : "不明",
           shutterSpeed: getTag(["ExposureTime"]) || "不明",
-          focalLength: getTag(["FocalLength"]) ? `${getTag(["FocalLength"])}` : "不明",
+          focalLength: getTag(["FocalLength"])
+            ? `${getTag(["FocalLength"])}`
+            : "不明",
           whiteBalance: getTag(["WhiteBalance"]) || "自動",
           mode: getTag(["ExposureProgram"]) || "Auto",
-          dateTimeOriginal: getTag(["DateTimeOriginal", "DateTimeDigitized", "DateTime"]),
+          dateTimeOriginal: getTag([
+            "DateTimeOriginal",
+            "DateTimeDigitized",
+            "DateTime",
+          ]),
           filmSimulation: getTag(["FilmMode", "FilmSimulation", "Saturation"]),
           dynamicRange: getTag(["DynamicRange"]),
-          focalLength35mm: getTag(["FocalLengthIn35mmFilm", "FocalLength35efl"]),
+          focalLength35mm: getTag([
+            "FocalLengthIn35mmFilm",
+            "FocalLength35efl",
+          ]),
           exposureProgram: getTag(["ExposureProgram"]),
           flash: getTag(["Flash"]),
           meteringMode: getTag(["MeteringMode"]),
@@ -137,17 +151,21 @@ export default function ConfirmScreen() {
 
             <View style={styles.dataCard}>
               <Text style={styles.dataTitle}>検出された撮影情報</Text>
-              
+
               {extractedData ? (
                 <>
                   <View style={styles.dataRow}>
                     <Text style={styles.dataLabel}>カメラ</Text>
-                    <Text style={styles.dataValue}>{extractedData.cameraName}</Text>
+                    <Text style={styles.dataValue}>
+                      {extractedData.cameraName}
+                    </Text>
                   </View>
 
                   <View style={styles.dataRow}>
                     <Text style={styles.dataLabel}>レンズ</Text>
-                    <Text style={styles.dataValue}>{extractedData.lensName}</Text>
+                    <Text style={styles.dataValue}>
+                      {extractedData.lensName}
+                    </Text>
                   </View>
 
                   <View style={styles.dataRow}>
@@ -157,22 +175,30 @@ export default function ConfirmScreen() {
 
                   <View style={styles.dataRow}>
                     <Text style={styles.dataLabel}>絞り</Text>
-                    <Text style={styles.dataValue}>{extractedData.aperture}</Text>
+                    <Text style={styles.dataValue}>
+                      {extractedData.aperture}
+                    </Text>
                   </View>
 
                   <View style={styles.dataRow}>
                     <Text style={styles.dataLabel}>シャッター</Text>
-                    <Text style={styles.dataValue}>{extractedData.shutterSpeed}</Text>
+                    <Text style={styles.dataValue}>
+                      {extractedData.shutterSpeed}
+                    </Text>
                   </View>
 
                   <View style={styles.dataRow}>
                     <Text style={styles.dataLabel}>焦点距離</Text>
-                    <Text style={styles.dataValue}>{extractedData.focalLength}</Text>
+                    <Text style={styles.dataValue}>
+                      {extractedData.focalLength}
+                    </Text>
                   </View>
 
                   <View style={styles.dataRow}>
                     <Text style={styles.dataLabel}>WB</Text>
-                    <Text style={styles.dataValue}>{extractedData.whiteBalance}</Text>
+                    <Text style={styles.dataValue}>
+                      {extractedData.whiteBalance}
+                    </Text>
                   </View>
 
                   <View style={styles.dataRow}>

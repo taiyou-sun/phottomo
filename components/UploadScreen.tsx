@@ -88,9 +88,7 @@ export default function UploadScreen() {
           <Animated.View style={[styles.content, { opacity: fadeAnim }]}>
             <View style={styles.instructionCard}>
               <Upload size={40} color="#2e7d46" strokeWidth={2} />
-              <Text style={styles.instructionTitle}>
-                写真をアップロード
-              </Text>
+              <Text style={styles.instructionTitle}>写真をアップロード</Text>
               <Text style={styles.instructionText}>
                 AIコーチングを受けるために、あなたの写真をアップロードしてください。EXIFデータから撮影設定を自動解析します。
               </Text>

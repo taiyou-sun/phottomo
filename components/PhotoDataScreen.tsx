@@ -71,10 +71,17 @@ export default function PhotoDataScreen() {
             : "不明",
           whiteBalance: getTag(["WhiteBalance"]) || "自動",
           mode: getTag(["ExposureProgram"]) || "Auto",
-          dateTimeOriginal: getTag(["DateTimeOriginal", "DateTimeDigitized", "DateTime"]),
+          dateTimeOriginal: getTag([
+            "DateTimeOriginal",
+            "DateTimeDigitized",
+            "DateTime",
+          ]),
           filmSimulation: getTag(["FilmMode", "FilmSimulation", "Saturation"]),
           dynamicRange: getTag(["DynamicRange"]),
-          focalLength35mm: getTag(["FocalLengthIn35mmFilm", "FocalLength35efl"]),
+          focalLength35mm: getTag([
+            "FocalLengthIn35mmFilm",
+            "FocalLength35efl",
+          ]),
           exposureProgram: getTag(["ExposureProgram"]),
           flash: getTag(["Flash"]),
           meteringMode: getTag(["MeteringMode"]),
@@ -186,12 +193,16 @@ export default function PhotoDataScreen() {
 
               <View style={styles.dataRow}>
                 <Text style={styles.dataLabel}>焦点距離</Text>
-                <Text style={styles.dataValue}>{extractedData.focalLength}</Text>
+                <Text style={styles.dataValue}>
+                  {extractedData.focalLength}
+                </Text>
               </View>
 
               <View style={styles.dataRow}>
                 <Text style={styles.dataLabel}>WB</Text>
-                <Text style={styles.dataValue}>{extractedData.whiteBalance}</Text>
+                <Text style={styles.dataValue}>
+                  {extractedData.whiteBalance}
+                </Text>
               </View>
 
               <View style={styles.dataRow}>

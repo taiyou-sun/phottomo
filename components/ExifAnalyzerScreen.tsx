@@ -82,7 +82,7 @@ export default function ExifAnalyzerScreen() {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "x-api-key": API_KEY
+          "x-api-key": API_KEY,
         },
         body: JSON.stringify({
           image_base64: manipulated.base64,
@@ -206,7 +206,10 @@ export default function ExifAnalyzerScreen() {
         ]), // 'Saturation' sometimes holds film sim in older models or generic mapping
         dynamicRange: extractTag(["DynamicRange"]),
         whiteBalance: extractTag(["WhiteBalance"]),
-        focalLength35mm: extractTag(["FocalLengthIn35mmFilm", "FocalLength35efl"]),
+        focalLength35mm: extractTag([
+          "FocalLengthIn35mmFilm",
+          "FocalLength35efl",
+        ]),
         exposureProgram: extractTag(["ExposureProgram"]),
         exposureBias: extractTag(["ExposureBiasValue"]),
         flash: extractTag(["Flash"]),
@@ -324,14 +327,8 @@ export default function ExifAnalyzerScreen() {
               label="35mm換算焦点距離"
               value={exifData.focalLength35mm}
             />
-            <DataRow
-              label="撮影モード"
-              value={exifData.exposureProgram}
-            />
-            <DataRow
-              label="フラッシュ"
-              value={exifData.flash}
-            />
+            <DataRow label="撮影モード" value={exifData.exposureProgram} />
+            <DataRow label="フラッシュ" value={exifData.flash} />
           </View>
         )}
 

@@ -71,9 +71,9 @@ export default function AdviceScreen() {
       // 2. Call API
       const response = await fetch(API_URL, {
         method: "POST",
-        headers: { 
+        headers: {
           "Content-Type": "application/json",
-          "x-api-key": API_KEY
+          "x-api-key": API_KEY,
         },
         body: JSON.stringify({
           image_base64: manipulated.base64,
@@ -289,22 +289,26 @@ export default function AdviceScreen() {
                   </Text>
                 </View>
                 <View style={styles.adviceContentContainer}>
-                  {aiAdvice.split('\n').map((line, index) => {
+                  {aiAdvice.split("\n").map((line, index) => {
                     const trimmedLine = line.trim();
                     if (!trimmedLine) return null;
-                    
+
                     // Check for bullet points
-                    if (trimmedLine.startsWith('・') || trimmedLine.startsWith('- ') || /^\d+\./.test(trimmedLine)) {
+                    if (
+                      trimmedLine.startsWith("・") ||
+                      trimmedLine.startsWith("- ") ||
+                      /^\d+\./.test(trimmedLine)
+                    ) {
                       return (
                         <View key={index} style={styles.bulletPoint}>
                           <Text style={styles.bulletDot}>•</Text>
                           <Text style={styles.bulletText}>
-                            {trimmedLine.replace(/^[・-]\s*|^\d+\.\s*/, '')}
+                            {trimmedLine.replace(/^[・-]\s*|^\d+\.\s*/, "")}
                           </Text>
                         </View>
                       );
                     }
-                    
+
                     return (
                       <Text key={index} style={styles.adviceParagraph}>
                         {trimmedLine}
@@ -640,7 +644,7 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   bulletPoint: {
-    flexDirection: 'row',
+    flexDirection: "row",
     marginBottom: 8,
     paddingLeft: 8,
   },
@@ -649,7 +653,7 @@ const styles = StyleSheet.create({
     lineHeight: 26,
     color: "#2e7d46",
     marginRight: 8,
-    fontWeight: 'bold',
+    fontWeight: "bold",
   },
   bulletText: {
     flex: 1,
