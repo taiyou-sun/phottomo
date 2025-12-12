@@ -50,7 +50,22 @@ export default function SignUpScreen({ onNavigateToLogin }: SignUpScreenProps) {
       await signUp(email, password);
       Alert.alert('成功', 'アカウントが作成されました！');
     } catch (error: any) {
-      Alert.alert('登録エラー', error.message || '登録に失敗しました');
+      console.error('Sign up error details:', error);
+      let errorMessage = '登録に失敗しました';
+      
+      if (error.code === 'auth/email-already-in-use') {
+        errorMessage = 'このメールアドレスは既に使用されています';
+      } else if (error.code === 'auth/invalid-email') {
+        errorMessage = 'メールアドレスの形式が正しくありません';
+      } else if (error.code === 'auth/operation-not-allowed') {
+        errorMessage = 'メール/パスワード認証が有効化されていません';
+      } else if (error.code === 'auth/weak-password') {
+        errorMessage = 'パスワードが弱すぎます（6文字以上必要）';
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+      
+      Alert.alert('登録エラー', `${errorMessage}\n\nエラーコード: ${error.code || 'unknown'}`);
     } finally {
       setIsLoading(false);
     }
