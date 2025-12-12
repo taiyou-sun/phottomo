@@ -162,7 +162,6 @@ const styles = StyleSheet.create({
   },
   editButton: {
     padding: 8,
-    marginTop: 50,
   },
   scrollView: {
     flex: 1,
