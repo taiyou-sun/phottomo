@@ -14,8 +14,7 @@ export default function TabLayout() {
           backgroundColor: '#fff',
           borderTopWidth: 1,
           borderTopColor: '#e8ebe8',
-          paddingBottom: Platform.OS === 'ios' ? 20 : 8,
-          paddingTop: 8,
+          // Removed manual padding to let SafeArea handle it
         },
         tabBarLabelStyle: {
           fontSize: 12,

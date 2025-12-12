@@ -6,14 +6,13 @@ import {
   ScrollView,
   TouchableOpacity,
 } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Mail, Camera, Sparkles, ChevronRight, Settings, HelpCircle, Info, Edit } from 'lucide-react-native';
 import { useAuth } from '@/contexts/AuthContext';
 
 export default function ProfileScreen() {
   const { user, signOut } = useAuth();
-  const insets = useSafeAreaInsets();
-
+  
   const handleLogout = async () => {
     try {
       await signOut();
@@ -45,14 +44,14 @@ export default function ProfileScreen() {
 
   return (
     <View style={styles.container}>
-      <View style={[styles.headerBackground, { paddingTop: insets.top }]}>
+      <SafeAreaView edges={['top']} style={styles.headerBackground}>
         <View style={styles.headerContent}>
           <Text style={styles.headerTitle}>プロフィール</Text>
           <TouchableOpacity style={styles.editButton}>
             <Edit size={20} color="#fff" />
           </TouchableOpacity>
         </View>
-      </View>
+      </SafeAreaView>
 
       <ScrollView
         style={styles.scrollView}
@@ -144,15 +143,13 @@ const styles = StyleSheet.create({
   },
   headerBackground: {
     backgroundColor: '#2e5f4a',
-    paddingBottom: 12,
   },
   headerContent: {
     flexDirection: 'row' as const,
     alignItems: 'center' as const,
     justifyContent: 'space-between' as const,
     paddingHorizontal: 20,
-    paddingTop: 8,
-    paddingBottom: 12,
+    paddingVertical: 12,
   },
   headerTitle: {
     fontSize: 20,
