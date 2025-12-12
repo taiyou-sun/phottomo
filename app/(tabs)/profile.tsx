@@ -6,12 +6,13 @@ import {
   ScrollView,
   TouchableOpacity,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Mail, Camera, Sparkles, ChevronRight, Settings, HelpCircle, Info, Edit } from 'lucide-react-native';
 import { useAuth } from '@/contexts/AuthContext';
 
 export default function ProfileScreen() {
   const { user, signOut } = useAuth();
+  const insets = useSafeAreaInsets();
 
   const handleLogout = async () => {
     try {
