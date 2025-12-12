@@ -1,11 +1,12 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Animated } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Camera, Zap, Search, Settings } from 'lucide-react-native';
 import { useApp } from '@/contexts/AppContext';
 
 export default function HomeScreen() {
   const { navigateToScreen } = useApp();
+  const insets = useSafeAreaInsets();
   const fadeAnim = React.useRef(new Animated.Value(0)).current;
   const slideAnim = React.useRef(new Animated.Value(30)).current;
 
@@ -84,7 +85,7 @@ export default function HomeScreen() {
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
+      <View style={[styles.header, { paddingTop: Math.max(insets.top, 20) + 10 }]}>
         <Text style={styles.appName}>ふぉっとも</Text>
         <TouchableOpacity
           onPress={() => navigateToScreen('settings')}
@@ -95,15 +96,14 @@ export default function HomeScreen() {
         </TouchableOpacity>
       </View>
 
-      <SafeAreaView edges={['bottom']} style={styles.safeArea}>
-        <ScrollView
-          style={styles.scrollView}
-          contentContainerStyle={styles.scrollContent}
-          showsVerticalScrollIndicator={false}
-        >
-          <Animated.View
-            style={[
-              styles.heroSection,
+      <ScrollView
+        style={styles.scrollView}
+        contentContainerStyle={[styles.scrollContent, { paddingBottom: 100 }]}
+        showsVerticalScrollIndicator={false}
+      >
+        <Animated.View
+          style={[
+            styles.heroSection,
               {
                 opacity: fadeAnim,
                 transform: [{ translateY: slideAnim }],
@@ -143,7 +143,6 @@ export default function HomeScreen() {
             />
           </View>
         </ScrollView>
-      </SafeAreaView>
     </View>
   );
 }
@@ -158,7 +157,6 @@ const styles = StyleSheet.create({
     alignItems: 'center' as const,
     justifyContent: 'space-between' as const,
     paddingHorizontal: 20,
-    paddingTop: 50,
     paddingBottom: 16,
     backgroundColor: '#fff',
     borderBottomWidth: 1,
