@@ -171,7 +171,7 @@ const styles = StyleSheet.create({
   },
   profileSection: {
     alignItems: 'center' as const,
-    marginTop: -40,
+    marginTop: 0,
     marginBottom: 20,
   },
   avatarContainer: {
