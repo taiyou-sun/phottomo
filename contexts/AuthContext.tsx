@@ -9,6 +9,7 @@ import {
   sendPasswordResetEmail
 } from 'firebase/auth';
 import { auth } from '@/constants/firebase';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export const [AuthContextProvider, useAuth] = createContextHook(() => {
   const [user, setUser] = useState<User | null>(null);
@@ -63,8 +64,18 @@ export const [AuthContextProvider, useAuth] = createContextHook(() => {
   const signOut = async () => {
     try {
       setError(null);
+      console.log('Starting sign out process...');
+      
       await firebaseSignOut(auth);
-      console.log('Signed out successfully');
+      
+      await AsyncStorage.multiRemove([
+        '@user_session',
+        '@user_data',
+        '@auth_token',
+      ]);
+      
+      console.log('Signed out successfully and cleared cache');
+      setUser(null);
     } catch (err: any) {
       console.error('Sign out error:', err);
       setError(err.message || 'ログアウトに失敗しました');
