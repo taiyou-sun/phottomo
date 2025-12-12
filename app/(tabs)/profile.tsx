@@ -44,13 +44,13 @@ export default function ProfileScreen() {
 
   return (
     <View style={styles.container}>
-      <View style={styles.headerBackground}>
-        <SafeAreaView edges={['top']} style={styles.headerContent}>
+      <View style={[styles.headerBackground, { paddingTop: insets.top }]}>
+        <View style={styles.headerContent}>
           <Text style={styles.headerTitle}>プロフィール</Text>
           <TouchableOpacity style={styles.editButton}>
             <Edit size={20} color="#fff" />
           </TouchableOpacity>
-        </SafeAreaView>
+        </View>
       </View>
 
       <ScrollView
@@ -143,15 +143,15 @@ const styles = StyleSheet.create({
   },
   headerBackground: {
     backgroundColor: '#2e5f4a',
-    paddingBottom: 8,
+    paddingBottom: 12,
   },
   headerContent: {
     flexDirection: 'row' as const,
     alignItems: 'center' as const,
     justifyContent: 'space-between' as const,
     paddingHorizontal: 20,
-    //paddingTop: 8,
-    paddingBottom: 5,
+    paddingTop: 8,
+    paddingBottom: 12,
   },
   headerTitle: {
     fontSize: 20,
