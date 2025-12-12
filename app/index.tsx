@@ -11,7 +11,7 @@ export default function Index() {
 
   useEffect(() => {
     if (!loading && user) {
-      router.replace('/(tabs)');
+      router.replace('/home');
     }
   }, [user, loading, router]);
 

@@ -1,8 +1,5 @@
 import { initializeApp, getApps, getApp, FirebaseApp } from 'firebase/app';
-import { initializeAuth, getAuth, Auth } from 'firebase/auth';
-import ReactNativeAsyncStorage from '@react-native-async-storage/async-storage';
-// @ts-ignore
-import { getReactNativePersistence } from 'firebase/auth';
+import { getAuth, Auth } from 'firebase/auth';
 
 const firebaseConfig = {
   apiKey: "AIzaSyB73mTKh7UGbOANTwr7Nx-XfTPtnnYqx1U",
@@ -20,16 +17,11 @@ let auth: Auth;
 if (getApps().length === 0) {
   app = initializeApp(firebaseConfig);
   console.log('Firebase app initialized');
-  
-  // Initialize Auth with persistence
-  // @ts-ignore: getReactNativePersistence is available in React Native context but might be missing from some type definitions
-  auth = initializeAuth(app, {
-    persistence: getReactNativePersistence(ReactNativeAsyncStorage)
-  });
 } else {
   app = getApp();
   console.log('Using existing Firebase app');
-  auth = getAuth(app);
 }
+
+auth = getAuth(app);
 
 export { auth };
