@@ -11,7 +11,7 @@ import {
 } from "react-native";
 import * as ImagePicker from "expo-image-picker";
 import * as FileSystem from "expo-file-system/legacy";
-import { load as loadExif } from "exifreader";
+import { create as createExifParser } from "exif-parser";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Camera, FileImage, Sparkles, ArrowLeft } from "lucide-react-native";
 import * as ImageManipulator from "expo-image-manipulator";
@@ -141,83 +141,67 @@ export default function ExifAnalyzerScreen() {
         encoding: "base64",
       });
 
-      // 2. Parse with ExifReader
+      // 2. Parse with exif-parser
       const fileBuffer = base64ToUint8Array(base64);
-      const tags = await loadExif(fileBuffer.buffer);
+      const parser = createExifParser(fileBuffer.buffer);
+      const result = parser.parse();
+      const tags: any = result.tags;
 
       // Log for debugging (as requested)
       console.log("--- Parsed EXIF Tags ---");
-      // Avoid logging the huge base64 or binary buffers if any
-      const loggableTags: any = {};
-      Object.keys(tags).forEach((key) => {
-        if (key !== "MakerNote" && key !== "UserComment") {
-          // MakerNote can be huge binary sometimes if not parsed
-          loggableTags[key] = tags[key].description || tags[key].value;
-        }
-      });
-      console.log(JSON.stringify(loggableTags, null, 2));
+      console.log(JSON.stringify(tags, null, 2));
       setRawTags(tags);
 
       // 3. Extract Data Logic
       const extractTag = (keys: string[]): string | null => {
         for (const key of keys) {
-          if (tags[key] && tags[key].description) {
-            return tags[key].description;
-          }
-          if (tags[key] && tags[key].value) {
-            // Handle array values (sometimes rational numbers come as arrays)
-            if (Array.isArray(tags[key].value)) {
-              return tags[key].value.toString();
-            }
-            return tags[key].value.toString();
+          if (tags[key] !== undefined) {
+            return tags[key].toString();
           }
         }
         return null;
       };
 
-      // Helper for fraction conversion if needed (ExifReader usually handles description well, but just in case)
-      // For now relying on .description provided by ExifReader
+      const formatExposureTime = (time: number) => {
+        if (!time) return null;
+        if (time >= 1) return time.toString();
+        return `1/${Math.round(1 / time)}`;
+      };
 
       const data: ExifData = {
         // Basic
         make: extractTag(["Make"]),
         model: extractTag(["Model"]),
-        dateTimeOriginal: extractTag([
-          "DateTimeOriginal",
-          "DateTimeDigitized",
-          "DateTime",
-        ]),
+        dateTimeOriginal:
+          extractTag(["DateTimeOriginal", "CreateDate"]) ||
+          (tags.DateTimeOriginal
+            ? new Date(tags.DateTimeOriginal * 1000).toLocaleString()
+            : null),
 
         // Settings
-        iso: extractTag(["ISOSpeedRatings", "ISO"]),
+        iso: extractTag(["ISO", "ISOSpeedRatings"]),
         fNumber: extractTag(["FNumber"]),
-        exposureTime: extractTag(["ExposureTime"]),
-        focalLength: extractTag(["FocalLength"]),
-        lensModel: extractTag(["LensModel", "LensType", "LensInfo"]),
+        exposureTime: formatExposureTime(tags.ExposureTime),
+        focalLength: tags.FocalLength ? `${tags.FocalLength}mm` : null,
+        lensModel: extractTag(["LensModel", "LensInfo"]),
 
         // Maker Notes (Fujifilm specific attempts)
-        // Note: ExifReader tries to parse MakerNotes. Keys might be 'FilmMode', 'FilmSimulation', etc.
-        // We check multiple possibilities based on common Fujifilm tags.
         filmSimulation: extractTag([
           "FilmMode",
           "FilmSimulation",
           "Saturation",
-        ]), // 'Saturation' sometimes holds film sim in older models or generic mapping
+        ]),
         dynamicRange: extractTag(["DynamicRange"]),
-        whiteBalance: extractTag(["WhiteBalance"]),
+        whiteBalance: tags.WhiteBalance?.toString(),
         focalLength35mm: extractTag([
           "FocalLengthIn35mmFilm",
           "FocalLength35efl",
         ]),
-        exposureProgram: extractTag(["ExposureProgram"]),
-        exposureBias: extractTag(["ExposureBiasValue"]),
-        flash: extractTag(["Flash"]),
-        meteringMode: extractTag(["MeteringMode"]),
+        exposureProgram: tags.ExposureProgram?.toString(),
+        exposureBias: tags.ExposureBiasValue?.toString(),
+        flash: tags.Flash?.toString(),
+        meteringMode: tags.MeteringMode?.toString(),
       };
-
-      // Deep search for Fujifilm Film Simulation if not found in top level
-      // Sometimes it's inside a specific MakerNote tag that ExifReader might flatten with a prefix or keep nested?
-      // ExifReader usually flattens tags. Let's look for specific Fujifilm values if possible.
 
       setExifData(data);
     } catch (error) {

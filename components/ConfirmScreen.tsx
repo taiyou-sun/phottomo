@@ -12,7 +12,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { CheckCircle, ArrowLeft } from "lucide-react-native";
 import { useApp, PhotoData } from "@/contexts/AppContext";
 import * as FileSystem from "expo-file-system/legacy";
-import { load as loadExif } from "exifreader";
+import { create as createExifParser } from "exif-parser";
 import { base64ToUint8Array } from "@/utils";
 
 export default function ConfirmScreen() {
@@ -40,42 +40,46 @@ export default function ConfirmScreen() {
           }
         );
         const fileBuffer = base64ToUint8Array(base64);
-        const tags = await loadExif(fileBuffer.buffer);
+        const parser = createExifParser(fileBuffer.buffer);
+        const result = parser.parse();
+        const tags: any = result.tags;
 
         const getTag = (keys: string[]) => {
           for (const key of keys) {
-            if (tags[key]?.description) return tags[key].description;
-            if (tags[key]?.value) return tags[key].value.toString();
+            if (tags[key] !== undefined) {
+              return tags[key];
+            }
           }
-          return "不明";
+          return null;
+        };
+
+        const formatExposureTime = (time: number) => {
+          if (!time) return "不明";
+          if (time >= 1) return time.toString();
+          return `1/${Math.round(1 / time)}`;
         };
 
         const realPhotoData: PhotoData = {
-          cameraName: getTag(["Model", "Make"]) || "不明",
-          lensName: getTag(["LensModel", "LensType", "LensInfo"]) || "不明",
-          iso: parseInt(getTag(["ISOSpeedRatings", "ISO"]) || "0", 10),
+          cameraName: getTag(["Model"]) || getTag(["Make"]) || "不明",
+          lensName: getTag(["LensModel", "LensInfo"]) || "不明",
+          iso: Number(getTag(["ISO", "ISOSpeedRatings"])) || 0,
           aperture: getTag(["FNumber"]) ? `F${getTag(["FNumber"])}` : "不明",
-          shutterSpeed: getTag(["ExposureTime"]) || "不明",
-          focalLength: getTag(["FocalLength"])
-            ? `${getTag(["FocalLength"])}`
-            : "不明",
-          whiteBalance: getTag(["WhiteBalance"]) || "自動",
-          mode: getTag(["ExposureProgram"]) || "Auto",
-          dateTimeOriginal: getTag([
-            "DateTimeOriginal",
-            "DateTimeDigitized",
-            "DateTime",
-          ]),
-          filmSimulation: getTag(["FilmMode", "FilmSimulation", "Saturation"]),
-          dynamicRange: getTag(["DynamicRange"]),
-          focalLength35mm: getTag([
-            "FocalLengthIn35mmFilm",
-            "FocalLength35efl",
-          ]),
-          exposureProgram: getTag(["ExposureProgram"]),
-          flash: getTag(["Flash"]),
-          meteringMode: getTag(["MeteringMode"]),
-          exposureBias: getTag(["ExposureBiasValue"]),
+          shutterSpeed: formatExposureTime(tags.ExposureTime),
+          focalLength: tags.FocalLength ? `${tags.FocalLength}mm` : "不明",
+          whiteBalance: tags.WhiteBalance?.toString() || "自動",
+          mode: tags.ExposureProgram?.toString() || "Auto",
+          dateTimeOriginal:
+            getTag(["DateTimeOriginal", "CreateDate"]) ||
+            (tags.DateTimeOriginal
+              ? new Date(tags.DateTimeOriginal * 1000).toLocaleString()
+              : "不明"),
+          filmSimulation: "不明",
+          dynamicRange: "不明",
+          focalLength35mm: getTag(["FocalLengthIn35mmFilm"]) || "不明",
+          exposureProgram: tags.ExposureProgram?.toString(),
+          flash: tags.Flash?.toString(),
+          meteringMode: tags.MeteringMode?.toString(),
+          exposureBias: tags.ExposureBiasValue?.toString(),
         };
 
         setExtractedData(realPhotoData);
