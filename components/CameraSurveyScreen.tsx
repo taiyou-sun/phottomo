@@ -218,14 +218,14 @@ const styles = StyleSheet.create({
     marginVertical: 4,
   },
   userBubble: {
-    alignSelf: 'flex-end' as const,
+    alignSelf: 'flex-start' as const,
     backgroundColor: '#2e7d46',
-    borderBottomRightRadius: 4,
+    borderBottomLeftRadius: 4,
   },
   assistantBubble: {
-    alignSelf: 'flex-start' as const,
+    alignSelf: 'flex-end' as const,
     backgroundColor: '#fff',
-    borderBottomLeftRadius: 4,
+    borderBottomRightRadius: 4,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.05,
