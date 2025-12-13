@@ -176,7 +176,9 @@ export default function AdviceScreen() {
               <View style={styles.dataSummary}>
                 <View style={styles.summaryRow}>
                   <Text style={styles.summaryLabel}>カメラ:</Text>
-                  <Text style={styles.summaryValue}>{photoData.cameraName}</Text>
+                  <Text style={styles.summaryValue}>
+                    {photoData.cameraName}
+                  </Text>
                 </View>
                 <View style={styles.summaryRow}>
                   <Text style={styles.summaryLabel}>レンズ:</Text>
@@ -210,9 +212,9 @@ export default function AdviceScreen() {
 
             <View style={styles.coachSelectionSection}>
               <Text style={styles.sectionTitle}>コーチを選択</Text>
-              <ScrollView 
-                horizontal 
-                showsHorizontalScrollIndicator={false} 
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
                 contentContainerStyle={styles.coachListContent}
               >
                 {coachingStyles.map((style) => (
@@ -220,16 +222,20 @@ export default function AdviceScreen() {
                     key={style.id}
                     style={[
                       styles.coachCard,
-                      coachingStyle === style.id && styles.coachCardSelected
+                      coachingStyle === style.id && styles.coachCardSelected,
                     ]}
                     onPress={() => setCoachingStyle(style.id)}
                     activeOpacity={0.7}
                   >
                     <Text style={styles.coachEmoji}>{style.emoji}</Text>
-                    <Text style={[
-                      styles.coachName,
-                      coachingStyle === style.id && styles.coachNameSelected
-                    ]}>{style.name}</Text>
+                    <Text
+                      style={[
+                        styles.coachName,
+                        coachingStyle === style.id && styles.coachNameSelected,
+                      ]}
+                    >
+                      {style.name}
+                    </Text>
                     {coachingStyle === style.id && (
                       <View style={styles.activeCoachBadge} />
                     )}
@@ -704,7 +710,7 @@ const styles = StyleSheet.create({
     minWidth: 100,
     borderWidth: 2,
     borderColor: "#e8ebe8",
-    position: 'relative',
+    position: "relative",
   },
   coachCardSelected: {
     borderColor: "#2e7d46",
@@ -724,13 +730,13 @@ const styles = StyleSheet.create({
     color: "#2e7d46",
   },
   activeCoachBadge: {
-    position: 'absolute',
+    position: "absolute",
     top: 8,
     right: 8,
     width: 8,
     height: 8,
     borderRadius: 4,
-    backgroundColor: '#2e7d46',
+    backgroundColor: "#2e7d46",
   },
   intentHeader: {
     flexDirection: "row" as const,
