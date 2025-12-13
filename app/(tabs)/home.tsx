@@ -1,43 +1,46 @@
-import React from 'react';
-import { useApp } from '@/contexts/AppContext';
-import HomeScreen from '@/components/HomeScreen';
-import UploadScreen from '@/components/UploadScreen';
-import ConfirmScreen from '@/components/ConfirmScreen';
-import ConnectingScreen from '@/components/ConnectingScreen';
-import PhotoDataScreen from '@/components/PhotoDataScreen';
-import AdviceScreen from '@/components/AdviceScreen';
-import CameraSurveyScreen from '@/components/CameraSurveyScreen';
-import CameraRecommendationScreen from '@/components/CameraRecommendationScreen';
-import LensSurveyScreen from '@/components/LensSurveyScreen';
-import LensRecommendationScreen from '@/components/LensRecommendationScreen';
-import SettingsScreen from '@/components/SettingsScreen';
+import React from "react";
+import { useApp } from "@/contexts/AppContext";
+import HomeScreen from "@/components/HomeScreen";
+import UploadScreen from "@/components/UploadScreen";
+import ConfirmScreen from "@/components/ConfirmScreen";
+import ConnectingScreen from "@/components/ConnectingScreen";
+import PhotoDataScreen from "@/components/PhotoDataScreen";
+import AdviceScreen from "@/components/AdviceScreen";
+import CameraSurveyScreen from "@/components/CameraSurveyScreen";
+import CameraRecommendationScreen from "@/components/CameraRecommendationScreen";
+import LensSurveyScreen from "@/components/LensSurveyScreen";
+import LensRecommendationScreen from "@/components/LensRecommendationScreen";
+import SettingsScreen from "@/components/SettingsScreen";
+import ExifAnalyzerScreen from "@/components/ExifAnalyzerScreen";
 
 export default function HomeTab() {
   const { currentScreen } = useApp();
 
   switch (currentScreen) {
-    case 'home':
+    case "home":
       return <HomeScreen />;
-    case 'upload':
+    case "upload":
       return <UploadScreen />;
-    case 'confirm':
+    case "confirm":
       return <ConfirmScreen />;
-    case 'connecting':
+    case "connecting":
       return <ConnectingScreen />;
-    case 'photoData':
+    case "photoData":
       return <PhotoDataScreen />;
-    case 'advice':
+    case "advice":
       return <AdviceScreen />;
-    case 'survey':
+    case "survey":
       return <CameraSurveyScreen />;
-    case 'recommendation':
+    case "recommendation":
       return <CameraRecommendationScreen />;
-    case 'lensSurvey':
+    case "lensSurvey":
       return <LensSurveyScreen />;
-    case 'lensRecommendation':
+    case "lensRecommendation":
       return <LensRecommendationScreen />;
-    case 'settings':
+    case "settings":
       return <SettingsScreen />;
+    case "exifAnalyzer":
+      return <ExifAnalyzerScreen />;
     default:
       return <HomeScreen />;
   }
