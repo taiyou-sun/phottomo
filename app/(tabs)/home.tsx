@@ -8,8 +8,6 @@ import PhotoDataScreen from "@/components/PhotoDataScreen";
 import AdviceScreen from "@/components/AdviceScreen";
 import CameraSurveyScreen from "@/components/CameraSurveyScreen";
 import CameraRecommendationScreen from "@/components/CameraRecommendationScreen";
-import LensSurveyScreen from "@/components/LensSurveyScreen";
-import LensRecommendationScreen from "@/components/LensRecommendationScreen";
 import SettingsScreen from "@/components/SettingsScreen";
 import ExifAnalyzerScreen from "@/components/ExifAnalyzerScreen";
 
@@ -33,10 +31,6 @@ export default function HomeTab() {
       return <CameraSurveyScreen />;
     case "recommendation":
       return <CameraRecommendationScreen />;
-    case "lensSurvey":
-      return <LensSurveyScreen />;
-    case "lensRecommendation":
-      return <LensRecommendationScreen />;
     case "settings":
       return <SettingsScreen />;
     case "exifAnalyzer":

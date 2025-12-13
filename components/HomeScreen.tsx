@@ -8,7 +8,7 @@ import {
   Animated,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { Camera, Zap, Search, Settings, FileImage } from "lucide-react-native";
+import { Camera, Zap, Settings, FileImage } from "lucide-react-native";
 import { useApp } from "@/contexts/AppContext";
 
 export default function HomeScreen() {
@@ -156,17 +156,9 @@ export default function HomeScreen() {
           <ActionCard
             icon={Camera}
             title="カメラを探す"
-            description="最適なFUJIFILMカメラを診断"
+            description="AIとチャットして最適なFUJIFILMカメラを診断"
             onPress={() => navigateToScreen("survey")}
             delay={200}
-          />
-
-          <ActionCard
-            icon={Search}
-            title="レンズを探す"
-            description="撮影スタイルに合うレンズを診断"
-            onPress={() => navigateToScreen("lensSurvey")}
-            delay={300}
           />
 
           <ActionCard
@@ -174,7 +166,7 @@ export default function HomeScreen() {
             title="EXIF詳細解析"
             description="写真から詳細な撮影データを抽出"
             onPress={() => navigateToScreen("exifAnalyzer")}
-            delay={400}
+            delay={300}
           />
         </View>
       </ScrollView>

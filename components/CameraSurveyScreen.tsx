@@ -1,202 +1,112 @@
-import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Animated } from 'react-native';
+import React, { useState, useRef, useEffect } from 'react';
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  ScrollView,
+  TextInput,
+  KeyboardAvoidingView,
+  Platform,
+  ActivityIndicator,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { ChevronLeft, Settings } from 'lucide-react-native';
+import { ChevronLeft, Send } from 'lucide-react-native';
 import { useApp } from '@/contexts/AppContext';
-
-interface Question {
-  id: string;
-  question: string;
-  options: { value: string; label: string }[];
-}
-
-const beginnerQuestions: Question[] = [
-  {
-    id: 'subject',
-    question: 'どんな被写体を撮影しますか？',
-    options: [
-      { value: 'landscape', label: '風景' },
-      { value: 'portrait', label: '人物' },
-      { value: 'street', label: '街撮り' },
-      { value: 'general', label: '幅広く撮りたい' },
-    ],
-  },
-  {
-    id: 'feature',
-    question: '重視する機能は？',
-    options: [
-      { value: 'easy', label: '使いやすさ' },
-      { value: 'quality', label: '画質' },
-      { value: 'size', label: 'コンパクトさ' },
-      { value: 'video', label: '動画機能' },
-    ],
-  },
-  {
-    id: 'budget',
-    question: 'ご予算は？',
-    options: [
-      { value: '10-20', label: '10〜20万円' },
-      { value: '20+', label: '20万円以上' },
-    ],
-  },
-];
-
-const intermediateQuestions: Question[] = [
-  {
-    id: 'style',
-    question: '撮影スタイルは？',
-    options: [
-      { value: 'landscape', label: '風景中心' },
-      { value: 'portrait', label: 'ポートレート' },
-      { value: 'street', label: 'スナップ' },
-      { value: 'video', label: '動画も撮る' },
-    ],
-  },
-  {
-    id: 'lens',
-    question: 'よく使うレンズは？',
-    options: [
-      { value: 'wide', label: '広角' },
-      { value: 'standard', label: '標準' },
-      { value: 'telephoto', label: '望遠' },
-      { value: 'zoom', label: 'ズーム' },
-    ],
-  },
-  {
-    id: 'balance',
-    question: '画質と機動性のバランスは？',
-    options: [
-      { value: 'quality', label: '画質優先' },
-      { value: 'balanced', label: 'バランス型' },
-      { value: 'mobility', label: '機動性優先' },
-    ],
-  },
-  {
-    id: 'budget',
-    question: 'ご予算は？',
-    options: [
-      { value: '10-20', label: '10〜20万円' },
-      { value: '20-30', label: '20〜30万円' },
-      { value: '30+', label: '30万円以上' },
-    ],
-  },
-];
-
-const advancedQuestions: Question[] = [
-  {
-    id: 'sensor',
-    question: 'センサーサイズの優先度は？',
-    options: [
-      { value: 'high-res', label: '高解像度優先' },
-      { value: 'speed', label: 'スピード優先' },
-      { value: 'balanced', label: 'バランス重視' },
-    ],
-  },
-  {
-    id: 'af',
-    question: 'AF性能の要求は？',
-    options: [
-      { value: 'critical', label: '最重要（スポーツ等）' },
-      { value: 'important', label: '重要' },
-      { value: 'moderate', label: '標準で十分' },
-    ],
-  },
-  {
-    id: 'video',
-    question: '動画仕様は？',
-    options: [
-      { value: '8k', label: '8K必須' },
-      { value: '4k60', label: '4K/60p以上' },
-      { value: 'basic', label: '基本的でOK' },
-    ],
-  },
-  {
-    id: 'proFeatures',
-    question: '必要なプロ機能は？',
-    options: [
-      { value: 'dual-slot', label: 'デュアルスロット' },
-      { value: 'weather', label: '防塵防滴' },
-      { value: 'ergonomics', label: 'エルゴノミクス' },
-      { value: 'all', label: 'すべて必要' },
-    ],
-  },
-  {
-    id: 'budget',
-    question: 'ご予算は？',
-    options: [
-      { value: '20-30', label: '20〜30万円' },
-      { value: '30-50', label: '30〜50万円' },
-      { value: '50+', label: '50万円以上' },
-    ],
-  },
-];
+import { useRorkAgent } from '@rork-ai/toolkit-sdk';
 
 export default function CameraSurveyScreen() {
-  const { surveyAnswers, setSurveyAnswers, navigateToScreen } = useApp();
-  const [currentQuestionIndex, setCurrentQuestionIndex] = React.useState<number>(0);
-  const fadeAnim = React.useRef(new Animated.Value(0)).current;
+  const { navigateToScreen } = useApp();
+  const [input, setInput] = useState<string>('');
+  const scrollViewRef = useRef<ScrollView>(null);
 
-  const experienceLevel = surveyAnswers.experience || null;
-  const questions = experienceLevel === 'beginner'
-    ? beginnerQuestions
-    : experienceLevel === 'intermediate'
-    ? intermediateQuestions
-    : experienceLevel === 'advanced'
-    ? advancedQuestions
-    : [];
+  const { messages, sendMessage } = useRorkAgent({
+    tools: {},
+  });
 
-  const isFirstQuestion = !experienceLevel;
-  const currentQuestion = isFirstQuestion
-    ? {
-        id: 'experience',
-        question: '写真撮影の経験は？',
-        options: [
-          { value: 'beginner', label: '初級者' },
-          { value: 'intermediate', label: '中級者' },
-          { value: 'advanced', label: '上級者' },
-        ],
-      }
-    : questions[currentQuestionIndex];
+  useEffect(() => {
+    if (messages.length === 0) {
+      const initialPrompt = `あなたはFUJIFILMカメラの専門家です。ユーザーとの会話を通じて、最適なFUJIFILMカメラを提案してください。
 
-  React.useEffect(() => {
-    fadeAnim.setValue(0);
-    Animated.timing(fadeAnim, {
-      toValue: 1,
-      duration: 300,
-      useNativeDriver: true,
-    }).start();
-  }, [currentQuestionIndex, experienceLevel, fadeAnim]);
+以下の情報を自然な会話の中で聞き出してください：
+- 撮影経験レベル（初心者・中級者・上級者）
+- 主な被写体（風景・人物・スポーツ・マクロなど）
+- 重視する機能（使いやすさ・画質・携帯性・動画など）
+- 予算
 
-  const handleAnswer = (questionId: string, value: string) => {
-    const newAnswers = { ...surveyAnswers, [questionId]: value };
-    setSurveyAnswers(newAnswers);
+会話は日本語で、親しみやすく、カメラ初心者にも分かりやすい言葉で行ってください。専門用語を使う場合は、簡単な説明を添えてください。
 
-    if (isFirstQuestion) {
-      setCurrentQuestionIndex(0);
-    } else if (currentQuestionIndex < questions.length - 1) {
-      setCurrentQuestionIndex(currentQuestionIndex + 1);
-    } else {
-      navigateToScreen('recommendation');
+必要な情報が揃ったら、以下のFUJIFILMカメラから最適なものを提案してください：
+
+【初心者向け】
+- X-S20: 軽量コンパクト、動画性能も高い
+- X-T30 II: クラシックデザイン、使いやすい操作性
+
+【中級者向け】
+- X-T5: 高解像度4020万画素、優れた画質
+- X-S20: 動画も撮る方に最適
+
+【上級者向け】
+- X-H2S: スポーツ・動体撮影に最適、高速連写
+- X-H2: 最高画質4020万画素、風景・ポートレートに
+- X-Pro3: ストリートフォト向け、独特のデザイン
+
+提案の際は、そのカメラがなぜユーザーに合っているのか、具体的な理由を説明してください。
+
+まずは親しみやすく挨拶をして、カメラ選びのお手伝いを始めてください。`;
+      sendMessage(initialPrompt);
+    }
+  }, [messages.length, sendMessage]);
+
+  useEffect(() => {
+    setTimeout(() => {
+      scrollViewRef.current?.scrollToEnd({ animated: true });
+    }, 100);
+  }, [messages]);
+
+  const handleSend = () => {
+    if (input.trim()) {
+      console.log('Sending message:', input);
+      sendMessage(input.trim());
+      setInput('');
     }
   };
 
   const handleBack = () => {
-    if (currentQuestionIndex > 0) {
-      setCurrentQuestionIndex(currentQuestionIndex - 1);
-    } else if (experienceLevel) {
-      setSurveyAnswers({});
-      setCurrentQuestionIndex(0);
-    } else {
-      navigateToScreen('home');
-    }
+    navigateToScreen('home');
   };
 
-  const progress = isFirstQuestion
-    ? 0
-    : ((currentQuestionIndex + 1) / questions.length) * 100;
+  const renderMessage = (message: any, index: number) => {
+    const isUser = message.role === 'user';
+    const textParts = message.parts.filter((p: any) => p.type === 'text');
+    
+    if (textParts.length === 0) return null;
+
+    return (
+      <View
+        key={message.id || index}
+        style={[
+          styles.messageBubble,
+          isUser ? styles.userBubble : styles.assistantBubble,
+        ]}
+      >
+        {textParts.map((part: any, partIndex: number) => (
+          <Text
+            key={partIndex}
+            style={[
+              styles.messageText,
+              isUser ? styles.userText : styles.assistantText,
+            ]}
+          >
+            {part.text}
+          </Text>
+        ))}
+      </View>
+    );
+  };
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container} edges={['top']}>
       <View style={styles.header}>
         <TouchableOpacity
           onPress={handleBack}
@@ -205,48 +115,62 @@ export default function CameraSurveyScreen() {
         >
           <ChevronLeft size={24} color="#1a4d2e" />
         </TouchableOpacity>
-        <Text style={styles.appName}>カメラ診断</Text>
-        <TouchableOpacity
-          onPress={() => navigateToScreen('settings')}
-          style={styles.settingsButton}
-          testID="settings-button"
-        >
-          <Settings size={24} color="#1a4d2e" />
-        </TouchableOpacity>
+        <Text style={styles.appName}>カメラを探す</Text>
+        <View style={styles.placeholder} />
       </View>
 
-      <View style={styles.progressBar}>
-        <View style={[styles.progressFill, { width: `${progress}%` }]} />
-      </View>
-
-      <SafeAreaView edges={['bottom']} style={styles.safeArea}>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        style={styles.keyboardView}
+        keyboardVerticalOffset={0}
+      >
         <ScrollView
-          style={styles.scrollView}
-          contentContainerStyle={styles.scrollContent}
+          ref={scrollViewRef}
+          style={styles.messagesContainer}
+          contentContainerStyle={styles.messagesContent}
           showsVerticalScrollIndicator={false}
+          onContentSizeChange={() => {
+            scrollViewRef.current?.scrollToEnd({ animated: true });
+          }}
         >
-          <Animated.View style={[styles.content, { opacity: fadeAnim }]}>
-            <Text style={styles.questionNumber}>
-              質問 {isFirstQuestion ? 1 : currentQuestionIndex + 2} / {isFirstQuestion ? '?' : questions.length + 1}
-            </Text>
-            <Text style={styles.question}>{currentQuestion.question}</Text>
-
-            <View style={styles.optionsContainer}>
-              {currentQuestion.options.map((option) => (
-                <TouchableOpacity
-                  key={option.value}
-                  style={styles.optionButton}
-                  onPress={() => handleAnswer(currentQuestion.id, option.value)}
-                  testID={`option-${option.value}`}
-                >
-                  <Text style={styles.optionText}>{option.label}</Text>
-                </TouchableOpacity>
-              ))}
+          {messages.map((message, index) => renderMessage(message, index))}
+          
+          {messages.length > 0 && messages[messages.length - 1].role === 'user' && (
+            <View style={[styles.messageBubble, styles.assistantBubble]}>
+              <ActivityIndicator size="small" color="#1a4d2e" />
             </View>
-          </Animated.View>
+          )}
         </ScrollView>
-      </SafeAreaView>
-    </View>
+
+        <View style={styles.inputContainer}>
+          <TextInput
+            style={styles.input}
+            value={input}
+            onChangeText={setInput}
+            placeholder="メッセージを入力..."
+            placeholderTextColor="#a0b0a8"
+            multiline
+            maxLength={500}
+            testID="message-input"
+          />
+          <TouchableOpacity
+            onPress={handleSend}
+            style={[
+              styles.sendButton,
+              !input.trim() && styles.sendButtonDisabled,
+            ]}
+            disabled={!input.trim()}
+            testID="send-button"
+          >
+            <Send
+              size={20}
+              color={input.trim() ? '#fff' : '#a0b0a8'}
+              strokeWidth={2}
+            />
+          </TouchableOpacity>
+        </View>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 }
 
@@ -260,8 +184,7 @@ const styles = StyleSheet.create({
     alignItems: 'center' as const,
     justifyContent: 'space-between' as const,
     paddingHorizontal: 20,
-    paddingTop: 50,
-    paddingBottom: 16,
+    paddingVertical: 16,
     backgroundColor: '#fff',
     borderBottomWidth: 1,
     borderBottomColor: '#e8ebe8',
@@ -275,62 +198,78 @@ const styles = StyleSheet.create({
     color: '#1a4d2e',
     letterSpacing: 0.5,
   },
-  settingsButton: {
-    padding: 8,
+  placeholder: {
+    width: 40,
   },
-  progressBar: {
-    height: 4,
-    backgroundColor: '#e8ebe8',
-  },
-  progressFill: {
-    height: '100%',
-    backgroundColor: '#2e7d46',
-  },
-  safeArea: {
+  keyboardView: {
     flex: 1,
   },
-  scrollView: {
+  messagesContainer: {
     flex: 1,
   },
-  scrollContent: {
-    paddingHorizontal: 20,
-    paddingVertical: 40,
-  },
-  content: {
-    flex: 1,
-  },
-  questionNumber: {
-    fontSize: 14,
-    fontWeight: '600' as const,
-    color: '#5a7c5f',
-    marginBottom: 12,
-  },
-  question: {
-    fontSize: 28,
-    fontWeight: '700' as const,
-    color: '#1a4d2e',
-    marginBottom: 32,
-    lineHeight: 36,
-  },
-  optionsContainer: {
+  messagesContent: {
+    padding: 16,
     gap: 12,
   },
-  optionButton: {
+  messageBubble: {
+    maxWidth: '80%',
+    padding: 12,
+    borderRadius: 16,
+    marginVertical: 4,
+  },
+  userBubble: {
+    alignSelf: 'flex-end' as const,
+    backgroundColor: '#2e7d46',
+    borderBottomRightRadius: 4,
+  },
+  assistantBubble: {
+    alignSelf: 'flex-start' as const,
     backgroundColor: '#fff',
-    borderRadius: 12,
-    padding: 20,
-    borderWidth: 2,
-    borderColor: '#e8ebe8',
+    borderBottomLeftRadius: 4,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
+    shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.05,
-    shadowRadius: 8,
+    shadowRadius: 3,
     elevation: 2,
   },
-  optionText: {
-    fontSize: 18,
-    fontWeight: '600' as const,
+  messageText: {
+    fontSize: 16,
+    lineHeight: 22,
+  },
+  userText: {
+    color: '#fff',
+  },
+  assistantText: {
     color: '#1a4d2e',
-    textAlign: 'center' as const,
+  },
+  inputContainer: {
+    flexDirection: 'row' as const,
+    alignItems: 'flex-end' as const,
+    padding: 16,
+    backgroundColor: '#fff',
+    borderTopWidth: 1,
+    borderTopColor: '#e8ebe8',
+    gap: 12,
+  },
+  input: {
+    flex: 1,
+    backgroundColor: '#f5f7f5',
+    borderRadius: 20,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    fontSize: 16,
+    color: '#1a4d2e',
+    maxHeight: 100,
+  },
+  sendButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: '#2e7d46',
+    alignItems: 'center' as const,
+    justifyContent: 'center' as const,
+  },
+  sendButtonDisabled: {
+    backgroundColor: '#e8ebe8',
   },
 });

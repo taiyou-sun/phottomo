@@ -11,8 +11,6 @@ export type ScreenName =
   | "advice"
   | "survey"
   | "recommendation"
-  | "lensSurvey"
-  | "lensRecommendation"
   | "settings"
   | "exifAnalyzer";
 
@@ -57,12 +55,7 @@ export interface SurveyAnswers {
   proFeatures?: string;
 }
 
-export interface LensSurveyAnswers {
-  subject?: string;
-  focalLength?: string;
-  aperture?: string;
-  budget?: string;
-}
+
 
 const [AppContextProvider, useApp] = createContextHook(() => {
   const [currentScreen, setCurrentScreen] = useState<ScreenName>("home");
@@ -73,9 +66,6 @@ const [AppContextProvider, useApp] = createContextHook(() => {
     screenshotUris: [],
   });
   const [surveyAnswers, setSurveyAnswers] = useState<SurveyAnswers>({});
-  const [lensSurveyAnswers, setLensSurveyAnswers] = useState<LensSurveyAnswers>(
-    {}
-  );
   const [coachingStyle, setCoachingStyle] = useState<CoachingStyle>("phottomo");
 
   useEffect(() => {
@@ -110,9 +100,7 @@ const [AppContextProvider, useApp] = createContextHook(() => {
     setSurveyAnswers({});
   };
 
-  const resetLensSurveyAnswers = () => {
-    setLensSurveyAnswers({});
-  };
+
 
   const resetPhotoData = () => {
     setPhotoData(null);
@@ -121,7 +109,7 @@ const [AppContextProvider, useApp] = createContextHook(() => {
   const resetUploadedImages = () => {
     setUploadedImages({
       photoUri: null,
-      screenshotUri: null,
+      screenshotUris: [],
     });
   };
 
@@ -129,10 +117,9 @@ const [AppContextProvider, useApp] = createContextHook(() => {
     setPhotoData(null);
     setUploadedImages({
       photoUri: null,
-      screenshotUri: null,
+      screenshotUris: [],
     });
     setSurveyAnswers({});
-    setLensSurveyAnswers({});
     setCurrentScreen("home");
   };
 
@@ -142,16 +129,13 @@ const [AppContextProvider, useApp] = createContextHook(() => {
     photoData,
     uploadedImages,
     surveyAnswers,
-    lensSurveyAnswers,
     coachingStyle,
     navigateToScreen,
     setPhotoData,
     setUploadedImages,
     setSurveyAnswers,
-    setLensSurveyAnswers,
     setCoachingStyle: saveCoachingStyle,
     resetSurveyAnswers,
-    resetLensSurveyAnswers,
     resetPhotoData,
     resetUploadedImages,
     resetAll,
