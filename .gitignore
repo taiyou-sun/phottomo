@@ -10,6 +10,9 @@ docs/
 web-build/
 expo-env.d.ts
 
+# log
+*.log
+
 # Native
 ios/
 android/
@@ -41,3 +44,7 @@ yarn-error.*
 
 .rork
 .env
+__pycache__/
+camera_lens_combinations.csv
+scripts/csv_to_json.py
+api.py

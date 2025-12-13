@@ -9,7 +9,7 @@ import {
   Image,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { Camera, Zap, Search, Settings } from "lucide-react-native";
+import { Camera, Zap, Search, Settings, FileImage } from "lucide-react-native";
 import { useApp } from "@/contexts/AppContext";
 
 export default function HomeScreen() {

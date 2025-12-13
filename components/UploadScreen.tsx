@@ -9,7 +9,7 @@ import {
   Image,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { Upload, ImageIcon, FileImage, ArrowLeft } from "lucide-react-native";
+import { Upload, ImageIcon, ArrowLeft } from "lucide-react-native";
 import * as ImagePicker from "expo-image-picker";
 import { useApp } from "@/contexts/AppContext";
 
