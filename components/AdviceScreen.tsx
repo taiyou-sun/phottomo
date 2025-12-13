@@ -9,6 +9,7 @@ import {
   TextInput,
   ActivityIndicator,
   Alert,
+  Modal,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Settings, Edit3, Sparkles } from "lucide-react-native";
@@ -17,6 +18,8 @@ import { shootingIntents, transformAdviceByStyle } from "@/mocks/adviceData";
 import { coachingStyles } from "@/constants/coachingStyles";
 
 import * as ImageManipulator from "expo-image-manipulator";
+import { useAuth } from "@/contexts/AuthContext";
+import { saveAdviceHistory } from "@/utils/adviceHistory";
 
 const API_URL = process.env.EXPO_PUBLIC_AWS_API_URL || "";
 const API_KEY = process.env.EXPO_PUBLIC_AWS_API_KEY || "";
@@ -36,6 +39,7 @@ export default function AdviceScreen() {
     resetAll,
     uploadedImages,
   } = useApp();
+  const { user } = useAuth();
   const [selectedIntent, setSelectedIntent] = React.useState<string | null>(
     null
   );
@@ -43,6 +47,8 @@ export default function AdviceScreen() {
   const [showCustomInput, setShowCustomInput] = React.useState<boolean>(false);
   const [aiAdvice, setAiAdvice] = React.useState<string | null>(null);
   const [loadingAdvice, setLoadingAdvice] = React.useState<boolean>(false);
+  const [currentIntent, setCurrentIntent] = React.useState<string>("");
+  const [isSaving, setIsSaving] = React.useState<boolean>(false);
   const fadeAnim = React.useRef(new Animated.Value(0)).current;
 
   React.useEffect(() => {
@@ -109,8 +115,45 @@ export default function AdviceScreen() {
     if (intentId !== "custom") {
       const intent = shootingIntents.find((i) => i.id === intentId);
       if (intent) {
+        setCurrentIntent(intent.title);
         generateAiAdvice(intent.title);
       }
+    }
+  };
+
+  const handleCustomIntentSubmit = () => {
+    if (customIntent.trim()) {
+      setCurrentIntent(customIntent);
+      generateAiAdvice(customIntent);
+    }
+  };
+
+  const handleCloseAdvice = async () => {
+    if (!aiAdvice || !user || !photoData || !uploadedImages.photoUri) {
+      navigateToScreen("home");
+      resetAll();
+      return;
+    }
+
+    try {
+      setIsSaving(true);
+      await saveAdviceHistory({
+        userId: user.uid,
+        photoUri: uploadedImages.photoUri,
+        photoData,
+        advice: aiAdvice,
+        intent: currentIntent,
+        coachingStyle,
+      });
+
+      Alert.alert("保存完了", "アドバイスを保存しました");
+      navigateToScreen("home");
+      resetAll();
+    } catch (error) {
+      console.error("Error saving advice:", error);
+      Alert.alert("エラー", "アドバイスの保存に失敗しました");
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -367,35 +410,38 @@ export default function AdviceScreen() {
             )}
 
             <View style={styles.actionButtons}>
-              {selectedIntent && (
-                <TouchableOpacity
-                  style={styles.secondaryButton}
-                  onPress={() => {
-                    setSelectedIntent(null);
-                    setShowCustomInput(false);
-                    setCustomIntent("");
-                  }}
-                  testID="change-intent-button"
-                >
-                  <Text style={styles.secondaryButtonText}>
-                    撮影意図を変更する
-                  </Text>
-                </TouchableOpacity>
-              )}
-
               <TouchableOpacity
                 style={styles.primaryButton}
-                onPress={() => resetAll()}
-                testID="new-photo-button"
+                onPress={handleCloseAdvice}
+                testID="close-advice-button"
+                disabled={isSaving}
               >
-                <Text style={styles.primaryButtonText}>
-                  新しい写真を撮影する
-                </Text>
+                {isSaving ? (
+                  <ActivityIndicator color="#fff" />
+                ) : (
+                  <Text style={styles.primaryButtonText}>
+                    アドバイスを閉じる
+                  </Text>
+                )}
               </TouchableOpacity>
             </View>
           </Animated.View>
         </ScrollView>
       </SafeAreaView>
+
+      <Modal
+        visible={isSaving}
+        transparent
+        animationType="fade"
+        statusBarTranslucent
+      >
+        <View style={styles.savingOverlay}>
+          <View style={styles.savingContent}>
+            <ActivityIndicator size="large" color="#2e7d46" />
+            <Text style={styles.savingText}>保存中...</Text>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }
@@ -776,5 +822,28 @@ const styles = StyleSheet.create({
     fontSize: 16,
     lineHeight: 26,
     color: "#495057",
+  },
+  savingOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  savingContent: {
+    backgroundColor: "#fff",
+    borderRadius: 16,
+    padding: 32,
+    alignItems: "center",
+    gap: 16,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 8,
+  },
+  savingText: {
+    fontSize: 18,
+    fontWeight: "600",
+    color: "#1a4d2e",
   },
 });

@@ -12,13 +12,15 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Mail, Camera, Sparkles, ChevronRight, Settings, HelpCircle, Info, Edit, X } from 'lucide-react-native';
+import { Mail, Camera, Sparkles, ChevronRight, Settings, HelpCircle, Info, Edit, X, History } from 'lucide-react-native';
 import { useAuth } from '@/contexts/AuthContext';
 import { useRouter } from 'expo-router';
+import { useApp } from '@/contexts/AppContext';
 import * as ImagePicker from 'expo-image-picker';
 
 export default function ProfileScreen() {
   const { user, signOut } = useAuth();
+  const { navigateToScreen } = useApp();
   const insets = useSafeAreaInsets();
   const router = useRouter();
   
@@ -187,6 +189,16 @@ export default function ProfileScreen() {
             <StatItem label="アドバイス数" value="89" color="#f59e0b" />
             <StatItem label="平均スコア" value="4.8" color="#ef4444" />
           </View>
+
+          <TouchableOpacity
+            style={styles.historyButton}
+            onPress={() => router.push('/advice-history')}
+            activeOpacity={0.7}
+          >
+            <History size={20} color="#2e7d46" strokeWidth={2} />
+            <Text style={styles.historyButtonText}>過去のアドバイス</Text>
+            <ChevronRight size={20} color="#2e7d46" />
+          </TouchableOpacity>
         </View>
 
         <View style={styles.settingsCard}>
@@ -819,6 +831,24 @@ const styles = StyleSheet.create({
   statLabel: {
     fontSize: 12,
     color: '#666',
+  },
+  historyButton: {
+    flexDirection: 'row' as const,
+    alignItems: 'center' as const,
+    justifyContent: 'center' as const,
+    gap: 8,
+    marginTop: 20,
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    backgroundColor: '#f0f8f2',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#2e7d46',
+  },
+  historyButtonText: {
+    fontSize: 15,
+    fontWeight: '600' as const,
+    color: '#2e7d46',
   },
   settingsCard: {
     backgroundColor: '#fff',

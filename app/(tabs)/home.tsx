@@ -10,6 +10,8 @@ import CameraSurveyScreen from "@/components/CameraSurveyScreen";
 import CameraRecommendationScreen from "@/components/CameraRecommendationScreen";
 import SettingsScreen from "@/components/SettingsScreen";
 import ExifAnalyzerScreen from "@/components/ExifAnalyzerScreen";
+import AdviceHistoryScreen from "@/components/AdviceHistoryScreen";
+import AdviceDetailScreen from "@/components/AdviceDetailScreen";
 
 export default function HomeTab() {
   const { currentScreen } = useApp();
@@ -35,6 +37,10 @@ export default function HomeTab() {
       return <SettingsScreen />;
     case "exifAnalyzer":
       return <ExifAnalyzerScreen />;
+    case "adviceHistory":
+      return <AdviceHistoryScreen />;
+    case "adviceDetail":
+      return <AdviceDetailScreen />;
     default:
       return <HomeScreen />;
   }
