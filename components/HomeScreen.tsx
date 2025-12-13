@@ -12,7 +12,7 @@ import { Camera, Zap, Search, Settings, FileImage } from "lucide-react-native";
 import { useApp } from "@/contexts/AppContext";
 
 export default function HomeScreen() {
-  const { navigateToScreen } = useApp();
+  const { navigateToScreen, coachingStyle } = useApp();
   const insets = useSafeAreaInsets();
   const fadeAnim = React.useRef(new Animated.Value(0)).current;
   const slideAnim = React.useRef(new Animated.Value(30)).current;
@@ -32,17 +32,19 @@ export default function HomeScreen() {
     ]).start();
   }, [fadeAnim, slideAnim]);
 
-  const ActionCard = ({
-    icon: Icon,
-    title,
-    description,
-    onPress,
-    delay = 0,
-  }: {
-    icon: any;
-    title: string;
-    description: string;
-    onPress: () => void;
+  const ActionCard = ({ 
+    icon: Icon, 
+    title, 
+    description, 
+    extra,
+    onPress, 
+    delay = 0 
+  }: { 
+    icon: any; 
+    title: string; 
+    description: string; 
+    extra?: React.ReactNode;
+    onPress: () => void; 
     delay?: number;
   }) => {
     const cardFadeAnim = React.useRef(new Animated.Value(0)).current;
@@ -84,6 +86,7 @@ export default function HomeScreen() {
           <View style={styles.cardContent}>
             <Text style={styles.cardTitle}>{title}</Text>
             <Text style={styles.cardDescription}>{description}</Text>
+            {extra && <View style={{ marginTop: 8 }}>{extra}</View>}
           </View>
         </TouchableOpacity>
       </Animated.View>
@@ -92,10 +95,11 @@ export default function HomeScreen() {
 
   return (
     <View style={styles.container}>
-      <View
-        style={[styles.header, { paddingTop: Math.max(insets.top, 20) + 10 }]}
-      >
-        <Text style={styles.appName}>ふぉっとも</Text>
+      <View style={[styles.header, { paddingTop: Math.max(insets.top, 20) + 10 }]}>
+        <View>
+          <Text style={styles.appName}>ふぉっとも</Text>
+        </View>
+        
         <TouchableOpacity
           onPress={() => navigateToScreen("settings")}
           style={styles.settingsButton}
@@ -126,14 +130,28 @@ export default function HomeScreen() {
           <Text style={styles.subtitle}>AIコーチングで写真が上達</Text>
         </Animated.View>
 
-        <View style={styles.actionsContainer}>
-          <ActionCard
-            icon={Zap}
-            title="AI コーチングを試す"
-            description="写真と撮影データをアップロードして体験"
-            onPress={() => navigateToScreen("upload")}
-            delay={100}
-          />
+          <View style={styles.actionsContainer}>
+            <ActionCard
+              icon={Zap}
+              title="AI コーチングを試す"
+              description="写真と撮影データをアップロードして体験"
+              onPress={() => navigateToScreen('upload')}
+              extra={(() => {
+                const styleInfo: Record<string, { name: string; emoji: string }> = {
+                  phottomo: { name: 'ふぉっとも君', emoji: '📷' },
+                  logical: { name: 'ロジカル博士', emoji: '🔬' },
+                  supportive: { name: '寄り添いカウンセラー', emoji: '🤝' },
+                  spartan: { name: 'スパルタ鬼軍曹', emoji: '💪' },
+                };
+                const s = styleInfo[coachingStyle] || styleInfo.phottomo;
+                return (
+                  <View style={styles.stylePill}>
+                    <Text style={styles.stylePillText}>{s.emoji} {s.name} を選択中</Text>
+                  </View>
+                );
+              })()}
+              delay={100}
+            />
 
           <ActionCard
             icon={Camera}
@@ -184,6 +202,24 @@ const styles = StyleSheet.create({
     fontWeight: "700" as const,
     color: "#1a4d2e",
     letterSpacing: 0.5,
+  },
+  stylePill: {
+    marginTop: 6,
+    alignSelf: 'flex-start' as const,
+    backgroundColor: '#eef7ee',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: '#e0f0e2',
+  },
+  stylePillText: {
+    fontSize: 11,
+    color: '#2a3a2a',
+  },
+  currentStyleWrapper: {
+    alignItems: 'center' as const,
+    marginVertical: 12,
   },
   settingsButton: {
     padding: 8,

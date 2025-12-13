@@ -27,6 +27,13 @@ export default function ProfileScreen() {
   const [cameraName, setCameraName] = useState('Canon EOS R5');
   const [tempCameraName, setTempCameraName] = useState('Canon EOS R5');
   const [isLoading, setIsLoading] = useState(false);
+  const [isHelpModalVisible, setIsHelpModalVisible] = useState(false);
+  const [helpSubject, setHelpSubject] = useState('');
+  const [helpMessage, setHelpMessage] = useState('');
+  const [isSendingHelp, setIsSendingHelp] = useState(false);
+  const [helpImageUri, setHelpImageUri] = useState<string | null>(null);
+  const [isPickingHelpImage, setIsPickingHelpImage] = useState(false);
+  const [isAboutModalVisible, setIsAboutModalVisible] = useState(false);
   
   const handleLogout = async () => {
     Alert.alert(
@@ -189,22 +196,22 @@ export default function ProfileScreen() {
           </View>
 
           <View style={styles.settingsList}>
-            <SettingItem
+            {/* <SettingItem
               icon={Settings}
               label="通知設定"
               onPress={() => console.log('通知設定')}
             />
-            <View style={styles.settingDivider} />
+            <View style={styles.settingDivider} /> */}
             <SettingItem
               icon={HelpCircle}
               label="ヘルプ・サポート"
-              onPress={() => console.log('ヘルプ')}
+              onPress={() => setIsHelpModalVisible(true)}
             />
             <View style={styles.settingDivider} />
             <SettingItem
               icon={Info}
               label="アプリについて"
-              onPress={() => console.log('アプリについて')}
+              onPress={() => setIsAboutModalVisible(true)}
             />
           </View>
         </View>
@@ -217,6 +224,139 @@ export default function ProfileScreen() {
           <Text style={styles.logoutButtonText}>ログアウト</Text>
         </TouchableOpacity>
       </ScrollView>
+
+        {/* Help & Support Modal */}
+        <Modal
+          visible={isHelpModalVisible}
+          transparent
+          animationType="fade"
+          onRequestClose={() => setIsHelpModalVisible(false)}
+        >
+          <View style={styles.modalOverlay}>
+            <View style={styles.modalContent}>
+              <View style={styles.modalHeader}>
+                <Text style={styles.modalTitle}>ヘルプ・サポート</Text>
+                <TouchableOpacity onPress={() => setIsHelpModalVisible(false)} style={styles.closeButton}>
+                  <X size={24} color="#666" />
+                </TouchableOpacity>
+              </View>
+
+              <View style={styles.modalBody}>
+                <ScrollView showsVerticalScrollIndicator={false}>
+                  <Text style={styles.helpTitle}>お問い合わせ</Text>
+
+                  <Text style={styles.inputLabel}>件名</Text>
+                  <TextInput
+                    style={styles.helpInput}
+                    value={helpSubject}
+                    onChangeText={setHelpSubject}
+                    placeholder="件名を入力"
+                    placeholderTextColor="#999"
+                  />
+
+                  <Text style={[styles.inputLabel, { marginTop: 12 }]}>内容</Text>
+                  <TextInput
+                    style={styles.helpMessageInput}
+                    value={helpMessage}
+                    onChangeText={setHelpMessage}
+                    placeholder="お問い合わせ内容を詳しくご記入ください。スクリーンショットなどがある場合はその旨を記載してください。"
+                    placeholderTextColor="#999"
+                    multiline
+                    numberOfLines={6}
+                  />
+
+                  <Text style={[styles.inputLabel, { marginTop: 4, marginBottom: 6 }]}>画像添付</Text>
+                  <View style={styles.helpImageRow}>
+                    {helpImageUri ? (
+                      <View style={styles.helpImageWrapper}>
+                        <Image source={{ uri: helpImageUri }} style={styles.helpImagePreview} />
+                        <TouchableOpacity
+                          style={styles.helpImageRemoveButton}
+                          onPress={() => setHelpImageUri(null)}
+                          testID="remove-help-image"
+                        >
+                          <X size={14} color="#fff" />
+                        </TouchableOpacity>
+                      </View>
+                    ) : (
+                      <TouchableOpacity
+                        style={styles.helpContactButton}
+                        onPress={async () => {
+                          try {
+                            setIsPickingHelpImage(true);
+                            const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
+                            if (!permissionResult.granted) {
+                              Alert.alert('エラー', '写真へのアクセス権限が必要です');
+                              return;
+                            }
+                            const result = await ImagePicker.launchImageLibraryAsync({
+                              mediaTypes: ['images'],
+                              allowsEditing: true,
+                              aspect: [4, 3],
+                              quality: 0.7,
+                            });
+                            if (!result.canceled && result.assets[0]) {
+                              setHelpImageUri(result.assets[0].uri);
+                            }
+                          } catch (err) {
+                            console.error('Pick help image error', err);
+                            Alert.alert('エラー', '画像の選択に失敗しました');
+                          } finally {
+                            setIsPickingHelpImage(false);
+                          }
+                        }}
+                        activeOpacity={0.8}
+                        testID="pick-help-image"
+                      >
+                        {isPickingHelpImage ? (
+                          <ActivityIndicator color="#fff" />
+                        ) : (
+                          <Camera size={16} color="#fff" />
+                        )}
+                      </TouchableOpacity>
+                    )}
+                  </View>
+                  <View style={{ height: 12 }} />
+
+                  <TouchableOpacity
+                    style={styles.helpSendButton}
+                    onPress={async () => {
+                      if (!helpMessage.trim()) {
+                        Alert.alert('入力エラー', '内容を入力してください');
+                        return;
+                      }
+                      try {
+                        setIsSendingHelp(true);
+                        // TODO: ここで実際の送信APIを呼ぶ（未実装）。現状はログを残して成功扱いにする。
+                        console.log('Send support message:', { subject: helpSubject, message: helpMessage, image: helpImageUri });
+                        await new Promise((r) => setTimeout(r, 800));
+                        Alert.alert('送信完了', 'お問い合わせを受け付けました。');
+                        setHelpSubject('');
+                        setHelpMessage('');
+                        setHelpImageUri(null);
+                        setIsHelpModalVisible(false);
+                      } catch (err) {
+                        console.error('Support send error', err);
+                        Alert.alert('送信失敗', '送信に失敗しました。時間を置いて再度お試しください。');
+                      } finally {
+                        setIsSendingHelp(false);
+                      }
+                    }}
+                    activeOpacity={0.8}
+                    disabled={isSendingHelp}
+                  >
+                    {isSendingHelp ? (
+                      <ActivityIndicator color="#fff" />
+                    ) : (
+                      <Text style={styles.helpSendText}>送信</Text>
+                    )}
+                  </TouchableOpacity>
+
+                </ScrollView>
+              </View>
+            </View>
+          </View>
+        </Modal>
 
       <Modal
         visible={isEditModalVisible}
@@ -277,6 +417,70 @@ export default function ProfileScreen() {
               >
                 <Text style={styles.saveButtonText}>保存</Text>
               </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
+      {/* About Modal */}
+      <Modal
+        visible={isAboutModalVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setIsAboutModalVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>アプリについて</Text>
+              <TouchableOpacity onPress={() => setIsAboutModalVisible(false)} style={styles.closeButton}>
+                <X size={24} color="#666" />
+              </TouchableOpacity>
+            </View>
+
+            <View style={styles.modalBody}>
+              <ScrollView showsVerticalScrollIndicator={false}>
+                <View style={styles.aboutContainer}>
+                  <View style={styles.appIconPlaceholder}>
+                    <Image source={require('@/assets/images/phottomo.jpeg')} style={styles.appIconImage} />
+                  </View>
+                  <Text style={styles.appNameText}>ふぉっとも</Text>
+                  <Text style={styles.versionText}>バージョン 1.0.0</Text>
+                </View>
+
+                <View style={styles.aboutSection}>
+                  <Text style={styles.aboutSectionTitle}>このアプリについて</Text>
+                  <Text style={styles.aboutText}>
+                    ふぉっとも は、AI コーチングを通じて写真撮影スキルを向上させるためのアプリです。
+                  </Text>
+                  <Text style={styles.aboutText}>
+                    あなたの撮影スタイルに合わせたカメラやレンズの選択肢をAIが提案し、レンズの情報やカメラの基本設定も学ぶことができます。
+                  </Text>
+                </View>
+
+                <View style={styles.aboutSection}>
+                  <Text style={styles.aboutSectionTitle}>機能</Text>
+                  <View style={styles.featureItem}>
+                    <View style={styles.featureBullet} />
+                    <Text style={styles.featureText}>AIコーチングを通じた写真撮影スキル向上</Text>
+                  </View>
+                  <View style={styles.featureItem}>
+                    <View style={styles.featureBullet} />
+                    <Text style={styles.featureText}>あなたに合ったカメラ・レンズの提案</Text>
+                  </View>
+                  <View style={styles.featureItem}>
+                    <View style={styles.featureBullet} />
+                    <Text style={styles.featureText}>撮影統計の追跡とフィードバック</Text>
+                  </View>
+                </View>
+
+                <View style={styles.aboutSection}>
+                  <Text style={styles.aboutSectionTitle}>開発</Text>
+                  <Text style={styles.aboutText}>
+                    © 2025 Phottomo. All rights reserved.
+                  </Text>
+                </View>
+              </ScrollView>
             </View>
           </View>
         </View>
@@ -372,7 +576,100 @@ const styles = StyleSheet.create({
   },
   modalBody: {
     padding: 20,
+    maxHeight: 360,
   },
+  faqItem: {
+    marginBottom: 12,
+  },
+  faqQuestion: {
+    fontSize: 14,
+    fontWeight: '700' as const,
+    color: '#1a4d2e',
+    marginBottom: 6,
+  },
+  helpTitle: {
+    fontSize: 18,
+    fontWeight: '800' as const,
+    color: '#1a4d2e',
+    marginBottom: 12,
+  },
+  faqAnswer: {
+    fontSize: 13,
+    color: '#555',
+    marginBottom: 6,
+  },
+  helpContactButton: {
+    backgroundColor: '#2e5f4a',
+    width: 48,
+    height: 48,
+    borderRadius: 10,
+    alignItems: 'center' as const,
+    justifyContent: 'center' as const,
+    marginTop: 8,
+  },
+  helpContactText: {
+    color: '#fff',
+    fontWeight: '700' as const,
+  },
+  helpInput: {
+    backgroundColor: '#f5f7f5',
+    borderRadius: 12,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    borderWidth: 1,
+    borderColor: '#e6e6e6',
+    color: '#111',
+    width: '100%',
+  },
+  helpMessageInput: {
+    backgroundColor: '#f5f7f5',
+    borderRadius: 12,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    borderWidth: 1,
+    borderColor: '#e6e6e6',
+    color: '#111',
+    textAlignVertical: 'top' as const,
+    minHeight: 180,
+    width: '100%',
+  },
+  helpSendButton: {
+    backgroundColor: '#2e5f4a',
+    paddingVertical: 12,
+    borderRadius: 12,
+    alignItems: 'center' as const,
+    marginTop: 12,
+  },
+  helpSendText: {
+    color: '#fff',
+    fontWeight: '700' as const,
+  },
+  helpImageRow: {
+    flexDirection: 'row' as const,
+    alignItems: 'center' as const,
+    gap: 8,
+    marginTop: 4,
+    width: '100%',
+  },
+  helpImageWrapper: {
+    position: 'relative' as const,
+    width: '100%',
+  },
+  helpImagePreview: {
+    width: '100%',
+    height: 180,
+    borderRadius: 8,
+    backgroundColor: '#f0f0f0',
+  },
+  helpImageRemoveButton: {
+    position: 'absolute' as const,
+    top: 8,
+    right: 8,
+    backgroundColor: '#ff6b3d',
+    borderRadius: 12,
+    padding: 6,
+  },
+  
   inputLabel: {
     fontSize: 14,
     fontWeight: '600' as const,
@@ -585,5 +882,68 @@ const styles = StyleSheet.create({
     fontWeight: '700' as const,
     color: '#fff',
     letterSpacing: 0.5,
+  },
+  aboutContainer: {
+    alignItems: 'center' as const,
+    marginBottom: 24,
+  },
+  appIconPlaceholder: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    backgroundColor: 'transparent',
+    alignItems: 'center' as const,
+    justifyContent: 'center' as const,
+    marginBottom: 12,
+    overflow: 'hidden' as const,
+  },
+  appIconImage: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+  },
+  appNameText: {
+    fontSize: 24,
+    fontWeight: '800' as const,
+    color: '#1a4d2e',
+    marginBottom: 4,
+  },
+  versionText: {
+    fontSize: 14,
+    color: '#999',
+  },
+  aboutSection: {
+    marginBottom: 20,
+  },
+  aboutSectionTitle: {
+    fontSize: 16,
+    fontWeight: '700' as const,
+    color: '#1a4d2e',
+    marginBottom: 12,
+  },
+  aboutText: {
+    fontSize: 14,
+    color: '#555',
+    lineHeight: 22,
+    marginBottom: 8,
+  },
+  featureItem: {
+    flexDirection: 'row' as const,
+    alignItems: 'flex-start' as const,
+    marginBottom: 12,
+  },
+  featureBullet: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: '#2e5f4a',
+    marginTop: 8,
+    marginRight: 12,
+  },
+  featureText: {
+    fontSize: 14,
+    color: '#555',
+    flex: 1,
+    lineHeight: 20,
   },
 });
