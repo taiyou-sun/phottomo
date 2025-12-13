@@ -1,8 +1,10 @@
 import { initializeApp, getApps, getApp, FirebaseApp } from 'firebase/app';
 import { getAuth, Auth } from 'firebase/auth';
+import { getFirestore, Firestore } from 'firebase/firestore';
+import { getStorage, FirebaseStorage } from 'firebase/storage';
 
 const firebaseConfig = {
-  apiKey: "AIzaSyB73mTKh7UGbOANTwr7Nx-XfTPtnnYqx1U",
+  apiKey: process.env.EXPO_PUBLIC_FIREBASE_API_KEY,
   authDomain: "phottomo.firebaseapp.com",
   projectId: "phottomo",
   storageBucket: "phottomo.firebasestorage.app",
@@ -13,6 +15,8 @@ const firebaseConfig = {
 
 let app: FirebaseApp;
 let auth: Auth;
+let db: Firestore;
+let storage: FirebaseStorage;
 
 if (getApps().length === 0) {
   app = initializeApp(firebaseConfig);
@@ -23,5 +27,7 @@ if (getApps().length === 0) {
 }
 
 auth = getAuth(app);
+db = getFirestore(app);
+storage = getStorage(app);
 
-export { auth };
+export { auth, db, storage };

@@ -12,7 +12,9 @@ export type ScreenName =
   | "survey"
   | "recommendation"
   | "settings"
-  | "exifAnalyzer";
+  | "exifAnalyzer"
+  | "adviceHistory"
+  | "adviceDetail";
 
 export type CoachingStyle = "logical" | "supportive" | "spartan" | "phottomo";
 
@@ -55,6 +57,16 @@ export interface SurveyAnswers {
   proFeatures?: string;
 }
 
+export interface AdviceHistory {
+  id: string;
+  photoUri: string;
+  photoData: PhotoData;
+  advice: string;
+  intent: string;
+  createdAt: Date;
+  coachingStyle: CoachingStyle;
+}
+
 
 
 const [AppContextProvider, useApp] = createContextHook(() => {
@@ -67,6 +79,7 @@ const [AppContextProvider, useApp] = createContextHook(() => {
   });
   const [surveyAnswers, setSurveyAnswers] = useState<SurveyAnswers>({});
   const [coachingStyle, setCoachingStyle] = useState<CoachingStyle>("phottomo");
+  const [selectedAdviceHistory, setSelectedAdviceHistory] = useState<AdviceHistory | null>(null);
 
   useEffect(() => {
     const loadCoachingStyle = async () => {
@@ -130,11 +143,13 @@ const [AppContextProvider, useApp] = createContextHook(() => {
     uploadedImages,
     surveyAnswers,
     coachingStyle,
+    selectedAdviceHistory,
     navigateToScreen,
     setPhotoData,
     setUploadedImages,
     setSurveyAnswers,
     setCoachingStyle: saveCoachingStyle,
+    setSelectedAdviceHistory,
     resetSurveyAnswers,
     resetPhotoData,
     resetUploadedImages,
