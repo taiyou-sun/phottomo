@@ -11,8 +11,7 @@ import {
 } from "react-native";
 import * as ImagePicker from "expo-image-picker";
 import * as FileSystem from "expo-file-system/legacy";
-// @ts-ignore
-import ExifReader from "exifreader";
+import { load as loadExif } from "exifreader";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Camera, FileImage, Sparkles, ArrowLeft } from "lucide-react-native";
 import * as ImageManipulator from "expo-image-manipulator";
@@ -144,7 +143,7 @@ export default function ExifAnalyzerScreen() {
 
       // 2. Parse with ExifReader
       const fileBuffer = base64ToUint8Array(base64);
-      const tags = await ExifReader.load(fileBuffer.buffer);
+      const tags = await loadExif(fileBuffer.buffer);
 
       // Log for debugging (as requested)
       console.log("--- Parsed EXIF Tags ---");

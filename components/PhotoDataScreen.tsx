@@ -6,14 +6,12 @@ import {
   TouchableOpacity,
   Animated,
   ScrollView,
-  Alert,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Download } from "lucide-react-native";
 import { useApp, PhotoData } from "@/contexts/AppContext";
 import * as FileSystem from "expo-file-system/legacy";
-// @ts-ignore
-import ExifReader from "exifreader";
+import { load as loadExif } from "exifreader";
 import { base64ToUint8Array } from "@/utils";
 
 export default function PhotoDataScreen() {
@@ -49,7 +47,7 @@ export default function PhotoDataScreen() {
 
         // 2. Parse EXIF
         const fileBuffer = base64ToUint8Array(base64);
-        const tags = await ExifReader.load(fileBuffer.buffer);
+        const tags = await loadExif(fileBuffer.buffer);
 
         // 3. Extract Data
         const getTag = (keys: string[]) => {

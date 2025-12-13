@@ -12,8 +12,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { CheckCircle, ArrowLeft } from "lucide-react-native";
 import { useApp, PhotoData } from "@/contexts/AppContext";
 import * as FileSystem from "expo-file-system/legacy";
-// @ts-ignore
-import ExifReader from "exifreader";
+import { load as loadExif } from "exifreader";
 import { base64ToUint8Array } from "@/utils";
 
 export default function ConfirmScreen() {
@@ -41,7 +40,7 @@ export default function ConfirmScreen() {
           }
         );
         const fileBuffer = base64ToUint8Array(base64);
-        const tags = await ExifReader.load(fileBuffer.buffer);
+        const tags = await loadExif(fileBuffer.buffer);
 
         const getTag = (keys: string[]) => {
           for (const key of keys) {

@@ -13,7 +13,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Settings, Edit3, Sparkles } from "lucide-react-native";
 import { useApp } from "@/contexts/AppContext";
-import { shootingIntents, transformAdviceByStyle } from "@/mocks/adviceData";
+import { shootingIntents } from "@/mocks/adviceData";
 import * as ImageManipulator from "expo-image-manipulator";
 
 const API_URL = process.env.EXPO_PUBLIC_AWS_API_URL || "";
@@ -109,11 +109,7 @@ export default function AdviceScreen() {
     }
   };
 
-  const handleCustomIntentSubmit = () => {
-    if (customIntent.trim()) {
-      generateAiAdvice(customIntent);
-    }
-  };
+
 
   if (!photoData) {
     return (
@@ -125,26 +121,9 @@ export default function AdviceScreen() {
     );
   }
 
-  const selectedIntentData = shootingIntents.find(
-    (intent) => intent.id === selectedIntent
-  );
 
-  const getTransformedAdvice = () => {
-    if (selectedIntent === "custom" && customIntent.trim()) {
-      const baseAdvice = [
-        `「${customIntent}」という意図に合わせて、構図を工夫してみましょう`,
-        "光の向きと強さを意識すると、より表現力が高まります",
-        "撮影設定を調整して、意図した雰囲気を作り出しましょう",
-        "何度も撮り直して、ベストな一枚を探してみてください",
-      ];
-      return transformAdviceByStyle(baseAdvice, coachingStyle);
-    }
-    return selectedIntentData
-      ? transformAdviceByStyle(selectedIntentData.baseAdvice, coachingStyle)
-      : [];
-  };
 
-  const transformedAdvice = getTransformedAdvice();
+
 
   return (
     <View style={styles.container}>
