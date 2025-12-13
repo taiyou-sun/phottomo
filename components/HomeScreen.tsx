@@ -6,9 +6,10 @@ import {
   TouchableOpacity,
   ScrollView,
   Animated,
+  Image,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { Camera, Zap, Search, Settings, FileImage } from "lucide-react-native";
+import { Camera, Zap, Search, Settings } from "lucide-react-native";
 import { useApp } from "@/contexts/AppContext";
 
 export default function HomeScreen() {
@@ -32,20 +33,22 @@ export default function HomeScreen() {
     ]).start();
   }, [fadeAnim, slideAnim]);
 
-  const ActionCard = ({ 
-    icon: Icon, 
-    title, 
-    description, 
+  const ActionCard = ({
+    icon: Icon,
+    title,
+    description,
     extra,
-    onPress, 
-    delay = 0 
-  }: { 
-    icon: any; 
-    title: string; 
-    description: string; 
+    onPress,
+    delay = 0,
+    isPrimary = false,
+  }: {
+    icon: any;
+    title: string;
+    description: string | React.ReactNode;
     extra?: React.ReactNode;
-    onPress: () => void; 
+    onPress: () => void;
     delay?: number;
+    isPrimary?: boolean;
   }) => {
     const cardFadeAnim = React.useRef(new Animated.Value(0)).current;
     const cardSlideAnim = React.useRef(new Animated.Value(20)).current;
@@ -75,17 +78,30 @@ export default function HomeScreen() {
         }}
       >
         <TouchableOpacity
-          style={styles.actionCard}
+          style={[styles.actionCard, isPrimary && styles.primaryActionCard]}
           onPress={onPress}
           activeOpacity={0.7}
           testID={`action-${title}`}
         >
-          <View style={styles.iconContainer}>
+          <View
+            style={[
+              styles.iconContainer,
+              isPrimary && styles.primaryIconContainer,
+            ]}
+          >
             <Icon size={32} color="#fff" strokeWidth={2} />
           </View>
           <View style={styles.cardContent}>
-            <Text style={styles.cardTitle}>{title}</Text>
-            <Text style={styles.cardDescription}>{description}</Text>
+            <Text
+              style={[styles.cardTitle, isPrimary && styles.primaryCardTitle]}
+            >
+              {title}
+            </Text>
+            {typeof description === "string" ? (
+              <Text style={styles.cardDescription}>{description}</Text>
+            ) : (
+              description
+            )}
             {extra && <View style={{ marginTop: 8 }}>{extra}</View>}
           </View>
         </TouchableOpacity>
@@ -95,11 +111,11 @@ export default function HomeScreen() {
 
   return (
     <View style={styles.container}>
-      <View style={[styles.header, { paddingTop: Math.max(insets.top, 20) + 10 }]}>
-        <View>
-          <Text style={styles.appName}>ふぉっとも</Text>
-        </View>
-        
+      <View
+        style={[styles.header, { paddingTop: Math.max(insets.top, 20) + 10 }]}
+      >
+        <View style={styles.headerSpacer} />
+        <Text style={styles.appName}>ふぉっとも</Text>
         <TouchableOpacity
           onPress={() => navigateToScreen("settings")}
           style={styles.settingsButton}
@@ -124,39 +140,50 @@ export default function HomeScreen() {
           ]}
         >
           <View style={styles.mascotContainer}>
-            <Text style={styles.mascotEmoji}>📷</Text>
+            <Image
+              source={require("@/assets/images/phottomo.jpeg")}
+              style={styles.mascotImage}
+              resizeMode="cover"
+            />
           </View>
-          <Text style={styles.title}>ふぉっとも</Text>
-          <Text style={styles.subtitle}>AIコーチングで写真が上達</Text>
         </Animated.View>
 
-          <View style={styles.actionsContainer}>
-            <ActionCard
-              icon={Zap}
-              title="AI コーチングを試す"
-              description="写真と撮影データをアップロードして体験"
-              onPress={() => navigateToScreen('upload')}
-              extra={(() => {
-                const styleInfo: Record<string, { name: string; emoji: string }> = {
-                  phottomo: { name: 'ふぉっとも君', emoji: '📷' },
-                  logical: { name: 'ロジカル博士', emoji: '🔬' },
-                  supportive: { name: '寄り添いカウンセラー', emoji: '🤝' },
-                  spartan: { name: 'スパルタ鬼軍曹', emoji: '💪' },
+        <View style={styles.actionsContainer}>
+          <ActionCard
+            icon={Zap}
+            title="写真アドバイス"
+            description="写真をアップロード"
+            onPress={() => navigateToScreen("upload")}
+            extra={(() => {
+              const styleInfo: Record<string, { name: string; emoji: string }> =
+                {
+                  phottomo: { name: "ふぉっとも君", emoji: "📷" },
+                  logical: { name: "ロジカル博士", emoji: "🔬" },
+                  supportive: { name: "寄り添いカウンセラー", emoji: "🤝" },
+                  spartan: { name: "スパルタ鬼軍曹", emoji: "💪" },
                 };
-                const s = styleInfo[coachingStyle] || styleInfo.phottomo;
-                return (
-                  <View style={styles.stylePill}>
-                    <Text style={styles.stylePillText}>{s.emoji} {s.name} を選択中</Text>
-                  </View>
-                );
-              })()}
-              delay={100}
-            />
+              const s = styleInfo[coachingStyle] || styleInfo.phottomo;
+              return (
+                <View style={styles.stylePill}>
+                  <Text style={styles.stylePillText}>
+                    {s.emoji} {s.name} を選択中
+                  </Text>
+                </View>
+              );
+            })()}
+            delay={100}
+            isPrimary={true}
+          />
 
           <ActionCard
             icon={Camera}
-            title="カメラを探す"
-            description="最適なFUJIFILMカメラを診断"
+            title="カメラ診断"
+            description={
+              <Text style={styles.cardDescription}>
+                最適な<Text style={styles.highlightText}>FUJIFILMカメラ</Text>
+                を診断
+              </Text>
+            }
             onPress={() => navigateToScreen("survey")}
             delay={200}
           />
@@ -164,17 +191,14 @@ export default function HomeScreen() {
           <ActionCard
             icon={Search}
             title="レンズを探す"
-            description="撮影スタイルに合うレンズを診断"
+            description={
+              <Text style={styles.cardDescription}>
+                最適な<Text style={styles.highlightText}>FUJIFILMレンズ</Text>
+                を診断
+              </Text>
+            }
             onPress={() => navigateToScreen("lensSurvey")}
             delay={300}
-          />
-
-          <ActionCard
-            icon={FileImage}
-            title="EXIF詳細解析"
-            description="写真から詳細な撮影データを抽出"
-            onPress={() => navigateToScreen("exifAnalyzer")}
-            delay={400}
           />
         </View>
       </ScrollView>
@@ -203,22 +227,25 @@ const styles = StyleSheet.create({
     color: "#1a4d2e",
     letterSpacing: 0.5,
   },
+  headerSpacer: {
+    width: 40,
+  },
   stylePill: {
     marginTop: 6,
-    alignSelf: 'flex-start' as const,
-    backgroundColor: '#eef7ee',
+    alignSelf: "flex-start" as const,
+    backgroundColor: "#eef7ee",
     paddingHorizontal: 6,
     paddingVertical: 2,
     borderRadius: 10,
     borderWidth: 1,
-    borderColor: '#e0f0e2',
+    borderColor: "#e0f0e2",
   },
   stylePillText: {
     fontSize: 11,
-    color: '#2a3a2a',
+    color: "#2a3a2a",
   },
   currentStyleWrapper: {
-    alignItems: 'center' as const,
+    alignItems: "center" as const,
     marginVertical: 12,
   },
   settingsButton: {
@@ -235,17 +262,30 @@ const styles = StyleSheet.create({
   },
   heroSection: {
     alignItems: "center" as const,
-    paddingVertical: 40,
-    paddingHorizontal: 20,
+    justifyContent: "center" as const,
+    marginVertical: 24,
   },
   mascotContainer: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
-    backgroundColor: "#e8f5e9",
-    alignItems: "center" as const,
-    justifyContent: "center" as const,
-    marginBottom: 20,
+    width: 160,
+    height: 160,
+    borderRadius: 80,
+    backgroundColor: "#fff",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 12,
+    elevation: 8,
+    overflow: "hidden",
+    borderWidth: 4,
+    borderColor: "#fff",
+  },
+  mascotImage: {
+    width: "100%",
+    height: "100%",
+  },
+  highlightText: {
+    fontWeight: "bold",
+    color: "#2e7d46",
   },
   mascotEmoji: {
     fontSize: 50,
@@ -278,6 +318,12 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     elevation: 3,
   },
+  primaryActionCard: {
+    backgroundColor: "#f0f8f2",
+    borderWidth: 2,
+    borderColor: "#2e7d46",
+    paddingVertical: 24,
+  },
   iconContainer: {
     width: 56,
     height: 56,
@@ -287,6 +333,11 @@ const styles = StyleSheet.create({
     justifyContent: "center" as const,
     marginRight: 16,
   },
+  primaryIconContainer: {
+    width: 64,
+    height: 64,
+    borderRadius: 16,
+  },
   cardContent: {
     flex: 1,
   },
@@ -295,6 +346,10 @@ const styles = StyleSheet.create({
     fontWeight: "600" as const,
     color: "#1a4d2e",
     marginBottom: 4,
+  },
+  primaryCardTitle: {
+    fontSize: 20,
+    fontWeight: "700" as const,
   },
   cardDescription: {
     fontSize: 14,

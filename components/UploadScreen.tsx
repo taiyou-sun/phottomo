@@ -90,7 +90,8 @@ export default function UploadScreen() {
               <Upload size={40} color="#2e7d46" strokeWidth={2} />
               <Text style={styles.instructionTitle}>写真をアップロード</Text>
               <Text style={styles.instructionText}>
-                AIコーチングを受けるために、あなたの写真をアップロードしてください。EXIFデータから撮影設定を自動解析します。
+                写真をアップロードしてください。{"\n"}
+                EXIFデータから撮影設定を自動解析します。
               </Text>
             </View>
 
@@ -119,9 +120,6 @@ export default function UploadScreen() {
                       <ImageIcon size={48} color="#2e7d46" strokeWidth={2} />
                     </View>
                     <Text style={styles.uploadTitle}>写真を選択</Text>
-                    <Text style={styles.uploadDescription}>
-                      アドバイスを受けたい写真を選択してください
-                    </Text>
                   </>
                 )}
               </TouchableOpacity>

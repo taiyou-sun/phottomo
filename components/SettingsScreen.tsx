@@ -3,57 +3,7 @@ import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Animated } from '
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ChevronLeft, Check } from 'lucide-react-native';
 import { useApp, CoachingStyle } from '@/contexts/AppContext';
-
-interface StyleOption {
-  id: CoachingStyle;
-  name: string;
-  description: string;
-  sampleAdvice: string[];
-  emoji: string;
-}
-
-const coachingStyles: StyleOption[] = [
-  {
-    id: 'phottomo',
-    name: 'ふぉっとも君',
-    emoji: '📷',
-    description: '優しく楽しく、語尾に「ニャ」がつく可愛らしいコーチング',
-    sampleAdvice: [
-      '絞りをF8にすると、手前から奥までピントが合うニャ！',
-      'ISOは低く保つと、とってもきれいな写真になるニャン！',
-    ],
-  },
-  {
-    id: 'logical',
-    name: 'ロジカル博士',
-    emoji: '🔬',
-    description: '専門用語と数値を用いた論理的で詳細なアドバイス',
-    sampleAdvice: [
-      '被写界深度を最大化するため、F8〜F11の絞り値を推奨します。',
-      'ISO感度は100〜400に設定することで、S/N比が向上します。',
-    ],
-  },
-  {
-    id: 'supportive',
-    name: '寄り添いカウンセラー',
-    emoji: '🤝',
-    description: '励ましながら優しく教えてくれる温かいアドバイス',
-    sampleAdvice: [
-      '大丈夫、絞りをF8にするだけで、素敵な風景写真が撮れますよ！',
-      'ISOを低く保つと、とってもきれいな写真になります。焦らずゆっくりね。',
-    ],
-  },
-  {
-    id: 'spartan',
-    name: 'スパルタ鬼軍曹',
-    emoji: '💪',
-    description: '厳しく命令的に、プロを目指す人向けの本格指導',
-    sampleAdvice: [
-      '絞りはF8〜F11だ！手前から奥まで全部シャープに撮れ！',
-      'ISOは100〜400に保て！ノイズなど許されん！',
-    ],
-  },
-];
+import { coachingStyles } from '@/constants/coachingStyles';
 
 export default function SettingsScreen() {
   const { coachingStyle, setCoachingStyle, previousScreen, navigateToScreen } = useApp();
@@ -96,9 +46,9 @@ export default function SettingsScreen() {
           showsVerticalScrollIndicator={false}
         >
           <Animated.View style={{ opacity: fadeAnim }}>
-            <Text style={styles.title}>AIのアドバイススタイルを選択</Text>
+            <Text style={styles.title}>コーチングスタイルを選択</Text>
             <Text style={styles.subtitle}>
-              写真撮影のアドバイスをどのような口調で受け取りたいか選んでください
+              お好きなコーチを選んでください。
             </Text>
 
             <View style={styles.stylesContainer}>
