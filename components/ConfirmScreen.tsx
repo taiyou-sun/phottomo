@@ -139,79 +139,65 @@ export default function ConfirmScreen() {
 
             <View style={styles.section}>
               <Text style={styles.sectionTitle}>撮影データ</Text>
-              <ScrollView
-                horizontal
-                showsHorizontalScrollIndicator={false}
-                style={styles.screenshotScroll}
-              >
-                {uploadedImages.screenshotUris.map((uri, index) => (
-                  <View key={index} style={styles.screenshotCard}>
-                    <Image source={{ uri: uri }} style={styles.image} />
-                  </View>
-                ))}
-              </ScrollView>
-            </View>
+              <View style={styles.dataCard}>
+                {extractedData ? (
+                  <>
+                    <View style={styles.dataRow}>
+                      <Text style={styles.dataLabel}>カメラ</Text>
+                      <Text style={styles.dataValue}>
+                        {extractedData.cameraName}
+                      </Text>
+                    </View>
 
-            <View style={styles.dataCard}>
-              <Text style={styles.dataTitle}>検出された撮影情報</Text>
+                    <View style={styles.dataRow}>
+                      <Text style={styles.dataLabel}>レンズ</Text>
+                      <Text style={styles.dataValue}>
+                        {extractedData.lensName}
+                      </Text>
+                    </View>
 
-              {extractedData ? (
-                <>
-                  <View style={styles.dataRow}>
-                    <Text style={styles.dataLabel}>カメラ</Text>
-                    <Text style={styles.dataValue}>
-                      {extractedData.cameraName}
-                    </Text>
-                  </View>
+                    <View style={styles.dataRow}>
+                      <Text style={styles.dataLabel}>ISO</Text>
+                      <Text style={styles.dataValue}>{extractedData.iso}</Text>
+                    </View>
 
-                  <View style={styles.dataRow}>
-                    <Text style={styles.dataLabel}>レンズ</Text>
-                    <Text style={styles.dataValue}>
-                      {extractedData.lensName}
-                    </Text>
-                  </View>
+                    <View style={styles.dataRow}>
+                      <Text style={styles.dataLabel}>絞り</Text>
+                      <Text style={styles.dataValue}>
+                        {extractedData.aperture}
+                      </Text>
+                    </View>
 
-                  <View style={styles.dataRow}>
-                    <Text style={styles.dataLabel}>ISO</Text>
-                    <Text style={styles.dataValue}>{extractedData.iso}</Text>
-                  </View>
+                    <View style={styles.dataRow}>
+                      <Text style={styles.dataLabel}>シャッター</Text>
+                      <Text style={styles.dataValue}>
+                        {extractedData.shutterSpeed}
+                      </Text>
+                    </View>
 
-                  <View style={styles.dataRow}>
-                    <Text style={styles.dataLabel}>絞り</Text>
-                    <Text style={styles.dataValue}>
-                      {extractedData.aperture}
-                    </Text>
-                  </View>
+                    <View style={styles.dataRow}>
+                      <Text style={styles.dataLabel}>焦点距離</Text>
+                      <Text style={styles.dataValue}>
+                        {extractedData.focalLength}
+                      </Text>
+                    </View>
 
-                  <View style={styles.dataRow}>
-                    <Text style={styles.dataLabel}>シャッター</Text>
-                    <Text style={styles.dataValue}>
-                      {extractedData.shutterSpeed}
-                    </Text>
-                  </View>
+                    <View style={styles.dataRow}>
+                      <Text style={styles.dataLabel}>WB</Text>
+                      <Text style={styles.dataValue}>
+                        {extractedData.whiteBalance}
+                      </Text>
+                    </View>
 
-                  <View style={styles.dataRow}>
-                    <Text style={styles.dataLabel}>焦点距離</Text>
-                    <Text style={styles.dataValue}>
-                      {extractedData.focalLength}
-                    </Text>
-                  </View>
-
-                  <View style={styles.dataRow}>
-                    <Text style={styles.dataLabel}>WB</Text>
-                    <Text style={styles.dataValue}>
-                      {extractedData.whiteBalance}
-                    </Text>
-                  </View>
-
-                  <View style={styles.dataRow}>
-                    <Text style={styles.dataLabel}>モード</Text>
-                    <Text style={styles.dataValue}>{extractedData.mode}</Text>
-                  </View>
-                </>
-              ) : (
-                <Text style={styles.dataNote}>解析中...</Text>
-              )}
+                    <View style={styles.dataRow}>
+                      <Text style={styles.dataLabel}>モード</Text>
+                      <Text style={styles.dataValue}>{extractedData.mode}</Text>
+                    </View>
+                  </>
+                ) : (
+                  <Text style={styles.dataNote}>解析中...</Text>
+                )}
+              </View>
             </View>
 
             <TouchableOpacity
@@ -219,7 +205,7 @@ export default function ConfirmScreen() {
               onPress={handleViewAdvice}
               testID="view-advice-button"
             >
-              <Text style={styles.adviceButtonText}>AIアドバイスを見る</Text>
+              <Text style={styles.adviceButtonText}>アドバイスを見る</Text>
             </TouchableOpacity>
           </Animated.View>
         </ScrollView>
