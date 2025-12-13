@@ -1,8 +1,15 @@
-import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Animated } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Camera, Zap, Search, Settings } from 'lucide-react-native';
-import { useApp } from '@/contexts/AppContext';
+import React from "react";
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  ScrollView,
+  Animated,
+} from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { Camera, Zap, Search, Settings, FileImage } from "lucide-react-native";
+import { useApp } from "@/contexts/AppContext";
 
 export default function HomeScreen() {
   const { navigateToScreen, coachingStyle } = useApp();
@@ -92,9 +99,9 @@ export default function HomeScreen() {
         <View>
           <Text style={styles.appName}>ふぉっとも</Text>
         </View>
-
+        
         <TouchableOpacity
-          onPress={() => navigateToScreen('settings')}
+          onPress={() => navigateToScreen("settings")}
           style={styles.settingsButton}
           testID="settings-button"
         >
@@ -110,18 +117,18 @@ export default function HomeScreen() {
         <Animated.View
           style={[
             styles.heroSection,
-              {
-                opacity: fadeAnim,
-                transform: [{ translateY: slideAnim }],
-              },
-            ]}
-          >
-            <View style={styles.mascotContainer}>
-              <Text style={styles.mascotEmoji}>📷</Text>
-            </View>
-            <Text style={styles.title}>ふぉっとも</Text>
-            <Text style={styles.subtitle}>AIコーチングで写真が上達</Text>
-          </Animated.View>
+            {
+              opacity: fadeAnim,
+              transform: [{ translateY: slideAnim }],
+            },
+          ]}
+        >
+          <View style={styles.mascotContainer}>
+            <Text style={styles.mascotEmoji}>📷</Text>
+          </View>
+          <Text style={styles.title}>ふぉっとも</Text>
+          <Text style={styles.subtitle}>AIコーチングで写真が上達</Text>
+        </Animated.View>
 
           <View style={styles.actionsContainer}>
             <ActionCard
@@ -146,23 +153,31 @@ export default function HomeScreen() {
               delay={100}
             />
 
-            <ActionCard
-              icon={Camera}
-              title="カメラを探す"
-              description="最適なFUJIFILMカメラを診断"
-              onPress={() => navigateToScreen('survey')}
-              delay={200}
-            />
+          <ActionCard
+            icon={Camera}
+            title="カメラを探す"
+            description="最適なFUJIFILMカメラを診断"
+            onPress={() => navigateToScreen("survey")}
+            delay={200}
+          />
 
-            <ActionCard
-              icon={Search}
-              title="レンズを探す"
-              description="撮影スタイルに合うレンズを診断"
-              onPress={() => navigateToScreen('lensSurvey')}
-              delay={300}
-            />
-          </View>
-        </ScrollView>
+          <ActionCard
+            icon={Search}
+            title="レンズを探す"
+            description="撮影スタイルに合うレンズを診断"
+            onPress={() => navigateToScreen("lensSurvey")}
+            delay={300}
+          />
+
+          <ActionCard
+            icon={FileImage}
+            title="EXIF詳細解析"
+            description="写真から詳細な撮影データを抽出"
+            onPress={() => navigateToScreen("exifAnalyzer")}
+            delay={400}
+          />
+        </View>
+      </ScrollView>
     </View>
   );
 }
@@ -170,22 +185,22 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f7f5',
+    backgroundColor: "#f5f7f5",
   },
   header: {
-    flexDirection: 'row' as const,
-    alignItems: 'center' as const,
-    justifyContent: 'space-between' as const,
+    flexDirection: "row" as const,
+    alignItems: "center" as const,
+    justifyContent: "space-between" as const,
     paddingHorizontal: 20,
     paddingBottom: 16,
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
     borderBottomWidth: 1,
-    borderBottomColor: '#e8ebe8',
+    borderBottomColor: "#e8ebe8",
   },
   appName: {
     fontSize: 20,
-    fontWeight: '700' as const,
-    color: '#1a4d2e',
+    fontWeight: "700" as const,
+    color: "#1a4d2e",
     letterSpacing: 0.5,
   },
   stylePill: {
@@ -219,7 +234,7 @@ const styles = StyleSheet.create({
     paddingBottom: 40,
   },
   heroSection: {
-    alignItems: 'center' as const,
+    alignItems: "center" as const,
     paddingVertical: 40,
     paddingHorizontal: 20,
   },
@@ -227,9 +242,9 @@ const styles = StyleSheet.create({
     width: 100,
     height: 100,
     borderRadius: 50,
-    backgroundColor: '#e8f5e9',
-    alignItems: 'center' as const,
-    justifyContent: 'center' as const,
+    backgroundColor: "#e8f5e9",
+    alignItems: "center" as const,
+    justifyContent: "center" as const,
     marginBottom: 20,
   },
   mascotEmoji: {
@@ -237,14 +252,14 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 36,
-    fontWeight: '700' as const,
-    color: '#1a4d2e',
+    fontWeight: "700" as const,
+    color: "#1a4d2e",
     marginBottom: 8,
     letterSpacing: 1,
   },
   subtitle: {
     fontSize: 16,
-    color: '#5a7c5f',
+    color: "#5a7c5f",
     letterSpacing: 0.5,
   },
   actionsContainer: {
@@ -252,12 +267,12 @@ const styles = StyleSheet.create({
     gap: 16,
   },
   actionCard: {
-    flexDirection: 'row' as const,
-    backgroundColor: '#fff',
+    flexDirection: "row" as const,
+    backgroundColor: "#fff",
     borderRadius: 16,
     padding: 20,
-    alignItems: 'center' as const,
-    shadowColor: '#000',
+    alignItems: "center" as const,
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.08,
     shadowRadius: 8,
@@ -267,9 +282,9 @@ const styles = StyleSheet.create({
     width: 56,
     height: 56,
     borderRadius: 12,
-    backgroundColor: '#2e7d46',
-    alignItems: 'center' as const,
-    justifyContent: 'center' as const,
+    backgroundColor: "#2e7d46",
+    alignItems: "center" as const,
+    justifyContent: "center" as const,
     marginRight: 16,
   },
   cardContent: {
@@ -277,13 +292,13 @@ const styles = StyleSheet.create({
   },
   cardTitle: {
     fontSize: 18,
-    fontWeight: '600' as const,
-    color: '#1a4d2e',
+    fontWeight: "600" as const,
+    color: "#1a4d2e",
     marginBottom: 4,
   },
   cardDescription: {
     fontSize: 14,
-    color: '#5a7c5f',
+    color: "#5a7c5f",
     lineHeight: 20,
   },
 });

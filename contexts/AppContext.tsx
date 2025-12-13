@@ -1,21 +1,22 @@
-import { useState, useEffect } from 'react';
-import createContextHook from '@nkzw/create-context-hook';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useState, useEffect } from "react";
+import createContextHook from "@nkzw/create-context-hook";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
-export type ScreenName = 
-  | 'home' 
-  | 'upload' 
-  | 'confirm' 
-  | 'connecting' 
-  | 'photoData' 
-  | 'advice' 
-  | 'survey' 
-  | 'recommendation' 
-  | 'lensSurvey' 
-  | 'lensRecommendation' 
-  | 'settings';
+export type ScreenName =
+  | "home"
+  | "upload"
+  | "confirm"
+  | "connecting"
+  | "photoData"
+  | "advice"
+  | "survey"
+  | "recommendation"
+  | "lensSurvey"
+  | "lensRecommendation"
+  | "settings"
+  | "exifAnalyzer";
 
-export type CoachingStyle = 'logical' | 'supportive' | 'spartan' | 'phottomo';
+export type CoachingStyle = "logical" | "supportive" | "spartan" | "phottomo";
 
 export interface PhotoData {
   cameraName: string;
@@ -26,15 +27,24 @@ export interface PhotoData {
   focalLength: string;
   whiteBalance: string;
   mode: string;
+  // Additional fields for detailed analysis
+  dateTimeOriginal?: string;
+  filmSimulation?: string;
+  dynamicRange?: string;
+  focalLength35mm?: string;
+  exposureProgram?: string;
+  flash?: string;
+  meteringMode?: string;
+  exposureBias?: string;
 }
 
 export interface UploadedImages {
   photoUri: string | null;
-  screenshotUri: string | null;
+  screenshotUris: string[];
 }
 
 export interface SurveyAnswers {
-  experience?: 'beginner' | 'intermediate' | 'advanced';
+  experience?: "beginner" | "intermediate" | "advanced";
   subject?: string;
   feature?: string;
   budget?: string;
@@ -55,26 +65,28 @@ export interface LensSurveyAnswers {
 }
 
 const [AppContextProvider, useApp] = createContextHook(() => {
-  const [currentScreen, setCurrentScreen] = useState<ScreenName>('home');
-  const [previousScreen, setPreviousScreen] = useState<ScreenName>('home');
+  const [currentScreen, setCurrentScreen] = useState<ScreenName>("home");
+  const [previousScreen, setPreviousScreen] = useState<ScreenName>("home");
   const [photoData, setPhotoData] = useState<PhotoData | null>(null);
   const [uploadedImages, setUploadedImages] = useState<UploadedImages>({
     photoUri: null,
-    screenshotUri: null,
+    screenshotUris: [],
   });
   const [surveyAnswers, setSurveyAnswers] = useState<SurveyAnswers>({});
-  const [lensSurveyAnswers, setLensSurveyAnswers] = useState<LensSurveyAnswers>({});
-  const [coachingStyle, setCoachingStyle] = useState<CoachingStyle>('phottomo');
+  const [lensSurveyAnswers, setLensSurveyAnswers] = useState<LensSurveyAnswers>(
+    {}
+  );
+  const [coachingStyle, setCoachingStyle] = useState<CoachingStyle>("phottomo");
 
   useEffect(() => {
     const loadCoachingStyle = async () => {
       try {
-        const stored = await AsyncStorage.getItem('coachingStyle');
+        const stored = await AsyncStorage.getItem("coachingStyle");
         if (stored) {
           setCoachingStyle(stored as CoachingStyle);
         }
       } catch (error) {
-        console.error('Failed to load coaching style:', error);
+        console.error("Failed to load coaching style:", error);
       }
     };
     loadCoachingStyle();
@@ -87,10 +99,10 @@ const [AppContextProvider, useApp] = createContextHook(() => {
 
   const saveCoachingStyle = async (style: CoachingStyle) => {
     try {
-      await AsyncStorage.setItem('coachingStyle', style);
+      await AsyncStorage.setItem("coachingStyle", style);
       setCoachingStyle(style);
     } catch (error) {
-      console.error('Failed to save coaching style:', error);
+      console.error("Failed to save coaching style:", error);
     }
   };
 
@@ -121,7 +133,7 @@ const [AppContextProvider, useApp] = createContextHook(() => {
     });
     setSurveyAnswers({});
     setLensSurveyAnswers({});
-    setCurrentScreen('home');
+    setCurrentScreen("home");
   };
 
   return {
