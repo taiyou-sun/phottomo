@@ -14,7 +14,9 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Settings, Edit3, Sparkles } from "lucide-react-native";
 import { useApp } from "@/contexts/AppContext";
-import { shootingIntents } from "@/mocks/adviceData";
+import { shootingIntents, transformAdviceByStyle } from "@/mocks/adviceData";
+import { coachingStyles } from "@/constants/coachingStyles";
+
 import * as ImageManipulator from "expo-image-manipulator";
 import { useAuth } from "@/contexts/AuthContext";
 import { saveAdviceHistory } from "@/utils/adviceHistory";
@@ -24,12 +26,15 @@ const API_KEY = process.env.EXPO_PUBLIC_AWS_API_KEY || "";
 
 if (!API_URL) {
   console.error("AWS API URL is not defined in .env");
+} else {
+  console.log("Using API URL:", API_URL);
 }
 
 export default function AdviceScreen() {
   const {
     photoData,
     coachingStyle,
+    setCoachingStyle,
     navigateToScreen,
     resetAll,
     uploadedImages,
@@ -171,6 +176,7 @@ export default function AdviceScreen() {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
+        <View style={styles.headerSpacer} />
         <Text style={styles.appName}>ふぉっとも</Text>
         <TouchableOpacity
           onPress={() => navigateToScreen("settings")}
@@ -188,23 +194,77 @@ export default function AdviceScreen() {
           showsVerticalScrollIndicator={false}
         >
           <Animated.View style={{ opacity: fadeAnim }}>
-            <View style={styles.dataSummary}>
-              <Text style={styles.summaryTitle}>撮影データ</Text>
-              <View style={styles.summaryRow}>
-                <Text style={styles.summaryLabel}>カメラ:</Text>
-                <Text style={styles.summaryValue}>{photoData.cameraName}</Text>
+            <View style={styles.sectionContainer}>
+              <Text style={styles.sectionTitle}>撮影データ</Text>
+              <View style={styles.dataSummary}>
+                <View style={styles.summaryRow}>
+                  <Text style={styles.summaryLabel}>カメラ:</Text>
+                  <Text style={styles.summaryValue}>
+                    {photoData.cameraName}
+                  </Text>
+                </View>
+                <View style={styles.summaryRow}>
+                  <Text style={styles.summaryLabel}>レンズ:</Text>
+                  <Text style={styles.summaryValue}>{photoData.lensName}</Text>
+                </View>
+                <View style={styles.summaryRow}>
+                  <Text style={styles.summaryLabel}>設定:</Text>
+                  <Text style={styles.summaryValue}>
+                    ISO{photoData.iso} / {photoData.aperture} /{" "}
+                    {photoData.shutterSpeed}
+                  </Text>
+                </View>
+                {photoData.focalLength && (
+                  <View style={styles.summaryRow}>
+                    <Text style={styles.summaryLabel}>焦点距離:</Text>
+                    <Text style={styles.summaryValue}>
+                      {photoData.focalLength}
+                    </Text>
+                  </View>
+                )}
+                {photoData.exposureBias && photoData.exposureBias !== "0" && (
+                  <View style={styles.summaryRow}>
+                    <Text style={styles.summaryLabel}>露出補正:</Text>
+                    <Text style={styles.summaryValue}>
+                      {photoData.exposureBias}
+                    </Text>
+                  </View>
+                )}
               </View>
-              <View style={styles.summaryRow}>
-                <Text style={styles.summaryLabel}>レンズ:</Text>
-                <Text style={styles.summaryValue}>{photoData.lensName}</Text>
-              </View>
-              <View style={styles.summaryRow}>
-                <Text style={styles.summaryLabel}>設定:</Text>
-                <Text style={styles.summaryValue}>
-                  ISO{photoData.iso} / {photoData.aperture} /{" "}
-                  {photoData.shutterSpeed}
-                </Text>
-              </View>
+            </View>
+
+            <View style={styles.coachSelectionSection}>
+              <Text style={styles.sectionTitle}>コーチを選択</Text>
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={styles.coachListContent}
+              >
+                {coachingStyles.map((style) => (
+                  <TouchableOpacity
+                    key={style.id}
+                    style={[
+                      styles.coachCard,
+                      coachingStyle === style.id && styles.coachCardSelected,
+                    ]}
+                    onPress={() => setCoachingStyle(style.id)}
+                    activeOpacity={0.7}
+                  >
+                    <Text style={styles.coachEmoji}>{style.emoji}</Text>
+                    <Text
+                      style={[
+                        styles.coachName,
+                        coachingStyle === style.id && styles.coachNameSelected,
+                      ]}
+                    >
+                      {style.name}
+                    </Text>
+                    {coachingStyle === style.id && (
+                      <View style={styles.activeCoachBadge} />
+                    )}
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
             </View>
 
             <Text style={styles.sectionTitle}>撮影意図を選択</Text>
@@ -219,24 +279,20 @@ export default function AdviceScreen() {
                   onPress={() => handleIntentSelect(intent.id)}
                   testID={`intent-${intent.id}`}
                 >
-                  <Text
-                    style={[
-                      styles.intentTitle,
-                      selectedIntent === intent.id &&
-                        styles.intentTitleSelected,
-                    ]}
-                  >
-                    {intent.title}
-                  </Text>
-                  <Text
-                    style={[
-                      styles.intentDescription,
-                      selectedIntent === intent.id &&
-                        styles.intentDescriptionSelected,
-                    ]}
-                  >
-                    {intent.description}
-                  </Text>
+                  <View style={styles.intentHeader}>
+                    <Text style={styles.intentEmoji}>{intent.emoji}</Text>
+                    <View style={styles.intentTextContainer}>
+                      <Text
+                        style={[
+                          styles.intentTitle,
+                          selectedIntent === intent.id &&
+                            styles.intentTitleSelected,
+                        ]}
+                      >
+                        {intent.title}
+                      </Text>
+                    </View>
+                  </View>
                 </TouchableOpacity>
               ))}
 
@@ -251,30 +307,20 @@ export default function AdviceScreen() {
                 }}
                 testID="intent-custom"
               >
-                <View style={styles.customIntentHeader}>
-                  <Edit3
-                    size={20}
-                    color={selectedIntent === "custom" ? "#2e7d46" : "#1a4d2e"}
-                  />
-                  <Text
-                    style={[
-                      styles.intentTitle,
-                      { marginLeft: 8 },
-                      selectedIntent === "custom" && styles.intentTitleSelected,
-                    ]}
-                  >
-                    自由に入力
-                  </Text>
+                <View style={styles.intentHeader}>
+                  <Text style={styles.intentEmoji}>✏️</Text>
+                  <View style={styles.intentTextContainer}>
+                    <Text
+                      style={[
+                        styles.intentTitle,
+                        selectedIntent === "custom" &&
+                          styles.intentTitleSelected,
+                      ]}
+                    >
+                      自由に入力
+                    </Text>
+                  </View>
                 </View>
-                <Text
-                  style={[
-                    styles.intentDescription,
-                    selectedIntent === "custom" &&
-                      styles.intentDescriptionSelected,
-                  ]}
-                >
-                  あなたの撮影意図を自由に入力してください
-                </Text>
               </TouchableOpacity>
 
               {showCustomInput && selectedIntent === "custom" && (
@@ -292,9 +338,11 @@ export default function AdviceScreen() {
                   <TouchableOpacity
                     style={styles.customSubmitButton}
                     onPress={handleCustomIntentSubmit}
-                    disabled={!customIntent.trim()}
+                    testID="custom-intent-submit"
                   >
-                    <Text style={styles.customSubmitText}>送信</Text>
+                    <Text style={styles.customSubmitText}>
+                      アドバイスをもらう
+                    </Text>
                   </TouchableOpacity>
                 </View>
               )}
@@ -313,9 +361,22 @@ export default function AdviceScreen() {
               <Animated.View style={[styles.adviceCard, { opacity: fadeAnim }]}>
                 <View style={styles.adviceHeader}>
                   <Sparkles size={24} color="#fff" />
-                  <Text style={styles.adviceTitle}>
-                    AIコーチからのアドバイス
-                  </Text>
+                  <View>
+                    <Text style={styles.adviceTitle}>
+                      AIコーチからのアドバイス
+                    </Text>
+                    {selectedIntent && (
+                      <Text style={styles.adviceSubtitle}>
+                        {selectedIntent === "custom"
+                          ? `「${customIntent}」について`
+                          : `「${
+                              shootingIntents.find(
+                                (i) => i.id === selectedIntent
+                              )?.title
+                            }」について`}
+                      </Text>
+                    )}
+                  </View>
                 </View>
                 <View style={styles.adviceContentContainer}>
                   {aiAdvice.split("\n").map((line, index) => {
@@ -407,6 +468,9 @@ const styles = StyleSheet.create({
     color: "#1a4d2e",
     letterSpacing: 0.5,
   },
+  headerSpacer: {
+    width: 40,
+  },
   settingsButton: {
     padding: 8,
   },
@@ -429,11 +493,13 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: "#5a7c5f",
   },
+  sectionContainer: {
+    marginBottom: 24,
+  },
   dataSummary: {
     backgroundColor: "#fff",
     borderRadius: 12,
     padding: 16,
-    marginBottom: 24,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.05,
@@ -512,8 +578,8 @@ const styles = StyleSheet.create({
   adviceTitle: {
     fontSize: 18,
     fontWeight: "700" as const,
-    color: "#1a4d2e",
-    marginBottom: 16,
+    color: "#fff",
+    marginBottom: 2,
   },
   adviceItem: {
     flexDirection: "row" as const,
@@ -643,7 +709,71 @@ const styles = StyleSheet.create({
     padding: 16,
     flexDirection: "row",
     alignItems: "center",
-    gap: 8,
+    gap: 12,
+  },
+  adviceTitle: {
+    fontSize: 18,
+    fontWeight: "700" as const,
+    color: "#fff",
+    marginBottom: 2,
+  },
+  adviceSubtitle: {
+    fontSize: 13,
+    color: "rgba(255, 255, 255, 0.9)",
+  },
+  coachSelectionSection: {
+    marginBottom: 24,
+  },
+  coachListContent: {
+    paddingRight: 20,
+    gap: 12,
+  },
+  coachCard: {
+    backgroundColor: "#fff",
+    borderRadius: 12,
+    padding: 12,
+    alignItems: "center",
+    minWidth: 100,
+    borderWidth: 2,
+    borderColor: "#e8ebe8",
+    position: "relative",
+  },
+  coachCardSelected: {
+    borderColor: "#2e7d46",
+    backgroundColor: "#f0f8f2",
+  },
+  coachEmoji: {
+    fontSize: 32,
+    marginBottom: 8,
+  },
+  coachName: {
+    fontSize: 12,
+    fontWeight: "600",
+    color: "#5a7c5f",
+    textAlign: "center",
+  },
+  coachNameSelected: {
+    color: "#2e7d46",
+  },
+  activeCoachBadge: {
+    position: "absolute",
+    top: 8,
+    right: 8,
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: "#2e7d46",
+  },
+  intentHeader: {
+    flexDirection: "row" as const,
+    alignItems: "center" as const,
+  },
+  intentEmoji: {
+    fontSize: 32,
+    marginRight: 12,
+  },
+  intentTextContainer: {
+    flex: 1,
   },
   customSubmitButton: {
     backgroundColor: "#2e7d46",
