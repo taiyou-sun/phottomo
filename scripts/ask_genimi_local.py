@@ -3,8 +3,8 @@
 Colab 固有のコードを削除し、.env から API キーを読み込みます。
 使い方:
   - 必要パッケージ: pip install google-generativeai python-dotenv
-  - .env に GEMINI_API_KEY または GENIMI_API_KEY を設定
-  - python scripts/ask_genimi_local.py "テストプロンプト"
+  - .env に GEMINI_API_KEY または GEMINI_API_KEY を設定
+  - python scripts/ask_GEMINI_local.py "テストプロンプト"
 """
 import os
 import sys
@@ -23,9 +23,9 @@ except Exception as e:
     raise
 
 # 環境変数名をサポート（既存の .env に合わせる）
-GEMINI_API_KEY = os.environ.get("GENIMI_API_KEY") or os.environ.get("GEMINI_API_KEY") or os.environ.get("GOOGLE_API_KEY")
+GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY") or os.environ.get("GEMINI_API_KEY") or os.environ.get("GOOGLE_API_KEY")
 if not GEMINI_API_KEY:
-    print("ERROR: 環境変数 GENIMI_API_KEY (または GEMINI_API_KEY/GOOGLE_API_KEY) を .env に設定してください")
+    print("ERROR: 環境変数 GEMINI_API_KEY (または GEMINI_API_KEY/GOOGLE_API_KEY) を .env に設定してください")
     sys.exit(2)
 
 # API の初期化

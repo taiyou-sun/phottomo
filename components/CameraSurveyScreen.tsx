@@ -14,29 +14,14 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { ChevronLeft, Send } from 'lucide-react-native';
 import { useApp } from '@/contexts/AppContext';
 import { useRorkAgent } from '@rork-ai/toolkit-sdk';
-import { GoogleGenAI, GenerateContentResponse} from '@google/genai';
 
-// react-native-config はネイティブモジュールなので環境によっては null を返すことがある。
-// 動的 require を使い、存在しない場合は constants の値をフォールバックします。
-let RNConfig: any = null;
-try {
-  // require を使うことでバンドル時の import 時エラーを避ける
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
-  RNConfig = require('react-native-config');
-  // react-native-config がネイティブ側で初期化されていない場合は null になる可能性がある
-  if (!RNConfig || typeof RNConfig.getConfig === 'function' && RNConfig.getConfig() == null) {
-    RNConfig = null;
-  }
-} catch (e) {
-  RNConfig = null;
+// .envから環境変数を読み込む（EXPO_PUBLIC_プレフィックス付き）
+const GEMINI_API_URL: string = process.env.EXPO_PUBLIC_GEMINI_API_URL || "";
+const GEMINI_API_KEY: string = process.env.EXPO_PUBLIC_GEMINI_API_KEY || "";
+
+if (!GEMINI_API_URL || !GEMINI_API_KEY) {
+  console.warn('GEMINI_API_URL または GEMINI_API_KEY が .env に設定されていません');
 }
-
-import { GENIMI_API_URL as CONST_GENIMI_API_URL, GENIMI_API_KEY as CONST_GENIMI_API_KEY } from '@/constants/genimi';
-import { longPressGestureHandlerProps } from 'react-native-gesture-handler/lib/typescript/handlers/LongPressGestureHandler';
-import { G } from 'react-native-svg';
-
-const GENIMI_API_URL: string = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent";
-const GENIMI_API_KEY: string = "AIzaSyBZIQ_de-UnwJ4Rr729BXJLb7cvItWJtgI";
 
 
 
@@ -44,8 +29,6 @@ export default function CameraSurveyScreen() {
   const { navigateToScreen } = useApp();
   const [input, setInput] = useState<string>('');
   const scrollViewRef = useRef<ScrollView>(null);
-  // RNConfig が null の場合があるため安全にフォールバックする
-  const key = (RNConfig && RNConfig.GENIMI_API_KEY) || GENIMI_API_KEY;
   const { messages, sendMessage } = useRorkAgent({
     tools: {},
   });
@@ -71,14 +54,11 @@ export default function CameraSurveyScreen() {
     const userText = input.trim();
     console.log('Sending message:', userText);
 
-
     // まず UI 側は既存の sendMessage を使ってユーザーメッセージを追加
     sendMessage(userText);
     setInput('');
 
     // camera_lens_combinations.json を読み込んでプロンプトに追加
-
-    // raw を try の外で宣言してスコープを広げる
     let raw = '';
     try {
       // Metro では require で静的なJSONを読み込める
@@ -86,11 +66,13 @@ export default function CameraSurveyScreen() {
       // eslint-disable-next-line @typescript-eslint/no-var-requires
       const cameraData = require('../camera_lens_combinations.json');
       raw = JSON.stringify(cameraData);
-      
+
     } catch (e) {
       console.warn('camera_lens_combinations.json 読み込み失敗:', e);
     }
-    const initialPrompt = `あなたはFUJIFILMカメラの専門家です。ユーザーとの会話を通じて、最適なFUJIFILMカメラを提案してください。
+
+    // システムプロンプト（最初のメッセージとして使用）
+    const systemPrompt = `あなたはFUJIFILMカメラの専門家です。ユーザーとの会話を通じて、最適なFUJIFILMカメラを提案してください。
 
 以下の情報を自然な会話の中で一つずつ聞き出してください：
 - 撮影経験レベル（初心者・中級者・上級者）
@@ -100,90 +82,145 @@ export default function CameraSurveyScreen() {
 
 会話は日本語で、親しみやすく、カメラ初心者にも分かりやすい言葉で行ってください。
 専門用語を使う場合は、簡単な説明を添えてください。
-以下の会話履歴を参照し、必要な情報が揃ったら、以下のFUJIFILMカメラのjsonデータから最適なものを提案してください。
+必要な情報が揃ったら、以下のFUJIFILMカメラのjsonデータから最適なものを提案してください。
 提案の際は、そのカメラがなぜユーザーに合っているのか、理由を端的に説明とともに、jsonに含まれる商品のURLを必ず提示してください。
 マークダウン形式の返答はやめてください。
 
 以下はカメラのデータです。
-${raw}
+${raw}`;
 
-以下は会話履歴です。
+    // Gemini API用の会話履歴を構築
+    const buildGeminiContents = (msgs: any[]) => {
+      const contents: any[] = [];
 
-`;
+      // 最初にシステムプロンプトをユーザーメッセージとして追加
+      if (contents.length === 0) {
+        contents.push({
+          role: 'user',
+          parts: [{ text: systemPrompt }]
+        });
+        contents.push({
+          role: 'model',
+          parts: [{ text: 'ご所望のカメラの情報を教えてください！' }]
+        });
+      }
 
-    // prompt を決定（既存の会話がある場合は会話履歴を付与）
-    const buildHistory = (msgs: any[]) => {
-      if (!msgs || msgs.length === 0) return '';
-      return msgs
-        .map((m) => {
-          // role 表示用ラベル
-          const roleLabel = isUserFromMessage(m) ? 'ユーザー' : 'アシスタント';
-          const text = (m.parts || [])
-            .filter((p: any) => p.type === 'text')
-            .map((p: any) => (typeof p.text === 'string' ? p.text : ''))
-            .join(' ')
-            .trim();
-          return `${roleLabel}: ${text}`;
-        })
-        .filter(Boolean)
-        .join('\n');
+      // 既存のメッセージ履歴を変換
+      for (const msg of msgs) {
+        // 初回の挨拶メッセージはスキップ（既に上で追加済み）
+        const text = (msg.parts || [])
+          .filter((p: any) => p.type === 'text')
+          .map((p: any) => (typeof p.text === 'string' ? p.text : ''))
+          .join(' ')
+          .trim();
+
+        if (text === 'ご所望のカメラの情報を教えてください！') {
+          continue;
+        }
+
+        const role = isUserFromMessage(msg) ? 'user' : 'model';
+        if (text) {
+          contents.push({
+            role: role,
+            parts: [{ text: text }]
+          });
+        }
+      }
+
+      // 最新のユーザーメッセージを追加
+      contents.push({
+        role: 'user',
+        parts: [{ text: userText }]
+      });
+
+      return contents;
     };
 
-    let prompt: string;
-    const historyStr = buildHistory(messages);
-    if (!historyStr) {
-      // 会話履歴がない場合は初期プロンプト + ユーザー入力
-      prompt = initialPrompt + userText;
-    } else {
-      // 会話履歴を initialPrompt 以下に付与し、最新ユーザー入力を末尾に付ける
-      prompt = `${initialPrompt}\n${historyStr}\nユーザー: ${userText}`;
-      console.log('Constructed prompt with history:', prompt);
-    }
-
-    const ai = new GoogleGenAI({ apiKey: GENIMI_API_KEY });
-
-    let response: GenerateContentResponse;
+    const contents = buildGeminiContents(messages);
+    console.log('=== Gemini API Request ===');
+    console.log('Contents length:', contents.length);
+    console.log('Contents:', JSON.stringify(contents, null, 2));
 
     try {
-      // 1. APIを呼び出し
-      response = await ai.models.generateContent({
-        model: 'gemini-3-pro-preview',
-        contents: prompt,
+      // fetch APIを使って直接Gemini APIを呼び出す
+      const apiUrl = `${GEMINI_API_URL}?key=${GEMINI_API_KEY}`;
+
+      console.log('API URL:', GEMINI_API_URL);
+      console.log('API Key exists:', !!GEMINI_API_KEY);
+      console.log('Sending request...');
+
+      const requestBody = JSON.stringify({
+        contents: contents,
       });
-      
+
+      console.log('Request body length:', requestBody.length);
+
+      const response = await fetch(apiUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: requestBody,
+      });
+
+      console.log('Response received!');
+      console.log('Response status:', response.status);
+      console.log('Response ok:', response.ok);
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Gemini API error response (text):', errorText);
+        let errorData;
+        try {
+          errorData = JSON.parse(errorText);
+          console.error('Gemini API error response (parsed):', errorData);
+        } catch (e) {
+          console.error('Could not parse error response as JSON');
+        }
+        throw new Error(`API error: ${response.status} ${response.statusText}`);
+      }
+
+      const responseText = await response.text();
+      console.log('Response text length:', responseText.length);
+
+      const data = JSON.parse(responseText);
+      console.log('Gemini API response:', data);
+
+      // レスポンスの検証とテキストの抽出
+      if (data.candidates && data.candidates.length > 0) {
+        const candidate = data.candidates[0];
+
+        // Safety や Recitation など、ブロックされた理由を確認
+        if (candidate.finishReason !== 'STOP') {
+          console.warn(`生成がブロックされました。理由: ${candidate.finishReason}`);
+          throw new Error(`AI応答が生成されませんでした。理由コード: ${candidate.finishReason}`);
+        }
+
+        // テキストを抽出
+        const aiText = candidate.content?.parts?.[0]?.text;
+
+        if (aiText && typeof aiText === 'string') {
+          sendMessage({
+            role: 'assistant',
+            parts: [{ type: 'text', text: aiText }],
+          });
+          return;
+        }
+      }
+
+      // 応答が空、または予期せぬ形式だった場合
+      console.error("AIからの応答テキストが空でした。", data);
+      throw new Error("AIから有効なテキスト応答が返されませんでした。");
+
     } catch (error) {
       // ネットワークエラーなど、リクエスト自体が失敗した場合
       console.error("Gemini APIリクエスト中にエラーが発生:", error);
-      throw new Error("AI応答の取得に失敗しました。");
-    }
-
-  // 2. レスポンスの検証とテキストの抽出
-  
-  // a) response.text が存在し、文字列であることを確認 (Type Guard)
-  if (response.text && typeof response.text === 'string') {
-    // 成功: response.text が安全に String 型として利用できる
       sendMessage({
         role: 'assistant',
-        parts: [{ type: 'text', text: response.text }],
+        parts: [{ type: 'text', text: 'エラーが発生しました。もう一度お試しください。' }],
       });
-    return response.text;
-  }
-  
-  // b) テキストが存在しない場合、なぜブロックされたかを確認
-  if (response.candidates && response.candidates.length > 0) {
-    const finishReason = response.candidates[0].finishReason;
-    
-    // Safety (安全性) や Recitation (引用) など、ブロックされた理由を特定
-    if (finishReason !== 'STOP') {
-      console.warn(`生成がブロックされました。理由: ${finishReason}`);
-      // ブロックされた理由に応じて、適切なエラーメッセージを返す
-      throw new Error(`AI応答が生成されませんでした。理由コード: ${finishReason}`);
+      throw error;
     }
-  }
-
-  // c) 応答が空、または予期せぬ形式だった場合
-  console.error("AIからの応答テキストが空でした。", response);
-  throw new Error("AIから有効なテキスト応答が返されませんでした。");
 
   };
 
