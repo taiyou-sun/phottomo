@@ -9,6 +9,7 @@ import {
   KeyboardAvoidingView,
   Platform,
   ActivityIndicator,
+  Linking,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ChevronLeft, Send } from 'lucide-react-native';
@@ -84,7 +85,15 @@ export default function CameraSurveyScreen() {
 専門用語を使う場合は、簡単な説明を添えてください。
 必要な情報が揃ったら、以下のFUJIFILMカメラのjsonデータから最適なものを提案してください。
 提案の際は、そのカメラがなぜユーザーに合っているのか、理由を端的に説明とともに、jsonに含まれる商品のURLを必ず提示してください。
-マークダウン形式の返答はやめてください。
+
+回答は見やすくするために、適宜マークダウン形式（太字、リストなど）を使用してください。
+特に重要なキーワードやカメラ名は **太字** で強調してください。
+
+例：
+**おすすめのカメラ**: FUJIFILM X-T5
+- **理由**: 風景撮影に最適な高画素センサーを搭載しているため。
+- **URL**: https://fujifilm-x.com/...
+
 
 以下はカメラのデータです。
 ${raw}`;
@@ -151,6 +160,9 @@ ${raw}`;
 
       const requestBody = JSON.stringify({
         contents: contents,
+        generationConfig: {
+          temperature: 0,
+        },
       });
 
       console.log('Request body length:', requestBody.length);
@@ -247,7 +259,17 @@ ${raw}`;
         code_inline: styles.mdCodeInline,
       } as any;
 
-      return <MarkdownLib style={mdStyle}>{content}</MarkdownLib>;
+      return (
+        <MarkdownLib
+          style={mdStyle}
+          onLinkPress={(url: string) => {
+            Linking.openURL(url).catch((err) => console.error('Failed to open URL:', err));
+            return true;
+          }}
+        >
+          {content}
+        </MarkdownLib>
+      );
     }
 
     // フォールバック: とりあえず行ごとに簡易パースして表示
