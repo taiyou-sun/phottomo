@@ -26,8 +26,8 @@ export default function ProfileScreen() {
   
   const [isEditModalVisible, setIsEditModalVisible] = useState(false);
   const [avatarUri, setAvatarUri] = useState<string | null>(null);
-  const [cameraName, setCameraName] = useState('Canon EOS R5');
-  const [tempCameraName, setTempCameraName] = useState('Canon EOS R5');
+  const [cameraName, setCameraName] = useState('X-T50');
+  const [tempCameraName, setTempCameraName] = useState('X-T50');
   const [isLoading, setIsLoading] = useState(false);
   const [isHelpModalVisible, setIsHelpModalVisible] = useState(false);
   const [helpSubject, setHelpSubject] = useState('');
