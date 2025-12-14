@@ -20,6 +20,7 @@ import { coachingStyles } from "@/constants/coachingStyles";
 import * as ImageManipulator from "expo-image-manipulator";
 import { useAuth } from "@/contexts/AuthContext";
 import { saveAdviceHistory } from "@/utils/adviceHistory";
+import Markdown from "react-native-markdown-display";
 
 const API_URL = process.env.EXPO_PUBLIC_AWS_API_URL || "";
 const API_KEY = process.env.EXPO_PUBLIC_AWS_API_KEY || "";
@@ -157,8 +158,6 @@ export default function AdviceScreen() {
     }
   };
 
-
-
   if (!photoData) {
     return (
       <SafeAreaView style={styles.container}>
@@ -168,10 +167,6 @@ export default function AdviceScreen() {
       </SafeAreaView>
     );
   }
-
-
-
-
 
   return (
     <View style={styles.container}>
@@ -379,32 +374,7 @@ export default function AdviceScreen() {
                   </View>
                 </View>
                 <View style={styles.adviceContentContainer}>
-                  {aiAdvice.split("\n").map((line, index) => {
-                    const trimmedLine = line.trim();
-                    if (!trimmedLine) return null;
-
-                    // Check for bullet points
-                    if (
-                      trimmedLine.startsWith("・") ||
-                      trimmedLine.startsWith("- ") ||
-                      /^\d+\./.test(trimmedLine)
-                    ) {
-                      return (
-                        <View key={index} style={styles.bulletPoint}>
-                          <Text style={styles.bulletDot}>•</Text>
-                          <Text style={styles.bulletText}>
-                            {trimmedLine.replace(/^[・-]\s*|^\d+\.\s*/, "")}
-                          </Text>
-                        </View>
-                      );
-                    }
-
-                    return (
-                      <Text key={index} style={styles.adviceParagraph}>
-                        {trimmedLine}
-                      </Text>
-                    );
-                  })}
+                  <Markdown style={markdownStyles}>{aiAdvice}</Markdown>
                 </View>
               </Animated.View>
             )}
@@ -847,3 +817,35 @@ const styles = StyleSheet.create({
     color: "#1a4d2e",
   },
 });
+
+const markdownStyles = {
+  body: {
+    fontSize: 16,
+    lineHeight: 26,
+    color: "#495057",
+  },
+  strong: {
+    fontWeight: "bold",
+    color: "#1a4d2e",
+  },
+  heading1: {
+    fontSize: 20,
+    fontWeight: "bold",
+    color: "#1a4d2e",
+    marginTop: 16,
+    marginBottom: 8,
+  },
+  heading2: {
+    fontSize: 18,
+    fontWeight: "bold",
+    color: "#1a4d2e",
+    marginTop: 12,
+    marginBottom: 8,
+  },
+  list_item: {
+    marginBottom: 4,
+  },
+  bullet_list: {
+    marginBottom: 8,
+  },
+};
