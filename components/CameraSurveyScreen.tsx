@@ -35,17 +35,15 @@ import { GENIMI_API_URL as CONST_GENIMI_API_URL, GENIMI_API_KEY as CONST_GENIMI_
 import { longPressGestureHandlerProps } from 'react-native-gesture-handler/lib/typescript/handlers/LongPressGestureHandler';
 import { G } from 'react-native-svg';
 
-const GENIMI_API_URL: string = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent";
-const GENIMI_API_KEY: string = "AIzaSyBZIQ_de-UnwJ4Rr729BXJLb7cvItWJtgI";
-
-
 
 export default function CameraSurveyScreen() {
   const { navigateToScreen } = useApp();
   const [input, setInput] = useState<string>('');
   const scrollViewRef = useRef<ScrollView>(null);
-  // RNConfig が null の場合があるため安全にフォールバックする
-  const key = (RNConfig && RNConfig.GENIMI_API_KEY) || GENIMI_API_KEY;
+  // GEMINI API Key の取得順: react-native-config -> process.env -> constants の順でフォールバック
+  const key = (RNConfig && (RNConfig.GEMINI_API_KEY || RNConfig.GENIMI_API_KEY))
+    || (typeof process !== 'undefined' && (process.env.GEMINI_API_KEY || process.env.GENIMI_API_KEY))
+    || CONST_GENIMI_API_KEY;
   const { messages, sendMessage } = useRorkAgent({
     tools: {},
   });
@@ -140,7 +138,7 @@ ${raw}
       console.log('Constructed prompt with history:', prompt);
     }
 
-    const ai = new GoogleGenAI({ apiKey: GENIMI_API_KEY });
+    const ai = new GoogleGenAI({ apiKey: key });
 
     let response: GenerateContentResponse;
 
