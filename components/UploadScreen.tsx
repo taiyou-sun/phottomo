@@ -7,11 +7,15 @@ import {
   ScrollView,
   Animated,
   Image,
+  Alert,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Upload, ImageIcon, ArrowLeft } from "lucide-react-native";
 import * as ImagePicker from "expo-image-picker";
+import * as FileSystem from "expo-file-system/legacy";
+import { create as createExifParser } from "exif-parser";
 import { useApp } from "@/contexts/AppContext";
+import { base64ToUint8Array } from "@/utils";
 
 export default function UploadScreen() {
   const { navigateToScreen, uploadedImages, setUploadedImages } = useApp();
@@ -27,6 +31,57 @@ export default function UploadScreen() {
       useNativeDriver: true,
     }).start();
   }, [fadeAnim]);
+
+  const checkExifAndCamera = async (uri: string): Promise<boolean> => {
+    try {
+      // EXIFデータを読み込み
+      const base64 = await FileSystem.readAsStringAsync(uri, {
+        encoding: "base64",
+      });
+      const fileBuffer = base64ToUint8Array(base64);
+      const parser = createExifParser(fileBuffer.buffer);
+      const result = parser.parse();
+      const tags: any = result.tags;
+
+      // EXIFデータの存在確認
+      if (!tags || Object.keys(tags).length === 0) {
+        Alert.alert(
+          "EXIFデータが見つかりません",
+          "この写真にはEXIFデータが含まれていません。\n富士フイルムのカメラで撮影した写真のみ読み込めます。",
+          [{ text: "OK" }]
+        );
+        return false;
+      }
+
+      // カメラメーカーの確認
+      const make = tags.Make || "";
+      const model = tags.Model || "";
+
+      // FUJIFILMまたはFujifilmを含むかチェック（大文字小文字を区別しない）
+      const isFujifilm =
+        make.toLowerCase().includes("fuji") ||
+        model.toLowerCase().includes("fuji");
+
+      if (!isFujifilm) {
+        Alert.alert(
+          "富士フイルム製カメラではありません",
+          `このカメラ（${make || model || "不明"}）で撮影された写真は対応していません。\n富士フイルムのカメラで撮影した写真のみ読み込めます。`,
+          [{ text: "OK" }]
+        );
+        return false;
+      }
+
+      return true;
+    } catch (error) {
+      console.error("EXIF check failed:", error);
+      Alert.alert(
+        "EXIFデータの読み込みに失敗しました",
+        "この写真のEXIFデータを読み込めませんでした。\n富士フイルムのカメラで撮影した写真のみ読み込めます。",
+        [{ text: "OK" }]
+      );
+      return false;
+    }
+  };
 
   const pickPhoto = async () => {
     const permissionResult =
@@ -44,8 +99,18 @@ export default function UploadScreen() {
     });
 
     if (!result.canceled && result.assets[0]) {
-      setPhotoUri(result.assets[0].uri);
-      console.log("Photo selected:", result.assets[0].uri);
+      const uri = result.assets[0].uri;
+
+      // EXIFデータと富士フイルム製カメラをチェック
+      const isValid = await checkExifAndCamera(uri);
+
+      if (isValid) {
+        setPhotoUri(uri);
+        console.log("Photo selected:", uri);
+      } else {
+        // 無効な写真の場合、選択をクリア
+        setPhotoUri(null);
+      }
     }
   };
 

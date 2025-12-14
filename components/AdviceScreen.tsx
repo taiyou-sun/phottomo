@@ -8,8 +8,7 @@ import {
   Animated,
   TextInput,
   ActivityIndicator,
-  Alert,
-  Modal,
+  Image,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Settings, Edit3, Sparkles } from "lucide-react-native";
@@ -49,7 +48,7 @@ export default function AdviceScreen() {
   const [aiAdvice, setAiAdvice] = React.useState<string | null>(null);
   const [loadingAdvice, setLoadingAdvice] = React.useState<boolean>(false);
   const [currentIntent, setCurrentIntent] = React.useState<string>("");
-  const [isSaving, setIsSaving] = React.useState<boolean>(false);
+  const [isSaved, setIsSaved] = React.useState<boolean>(false);
   const fadeAnim = React.useRef(new Animated.Value(0)).current;
 
   React.useEffect(() => {
@@ -65,6 +64,7 @@ export default function AdviceScreen() {
 
     setLoadingAdvice(true);
     setAiAdvice(null);
+    setIsSaved(false); // 新しいアドバイス生成時は保存状態をリセット
 
     try {
       // 1. Compress Image
@@ -104,8 +104,7 @@ export default function AdviceScreen() {
       const data = await response.json();
       setAiAdvice(data.advice);
     } catch (error) {
-      console.error(error);
-      Alert.alert("Error", "AIアドバイスの生成に失敗しました");
+      console.error("AIアドバイスの生成に失敗しました:", error);
     } finally {
       setLoadingAdvice(false);
     }
@@ -129,34 +128,37 @@ export default function AdviceScreen() {
     }
   };
 
-  const handleCloseAdvice = async () => {
-    if (!aiAdvice || !user || !photoData || !uploadedImages.photoUri) {
-      navigateToScreen("home");
-      resetAll();
-      return;
-    }
+  const handleSaveAdvice = () => {
+    // 即座に保存済み状態にする
+    setIsSaved(true);
 
-    try {
-      setIsSaving(true);
-      await saveAdviceHistory({
+    // バックグラウンドで保存処理を実行
+    if (aiAdvice && user && photoData && uploadedImages.photoUri) {
+      saveAdviceHistory({
         userId: user.uid,
         photoUri: uploadedImages.photoUri,
         photoData,
         advice: aiAdvice,
         intent: currentIntent,
         coachingStyle,
-      });
-
-      Alert.alert("保存完了", "アドバイスを保存しました");
-      navigateToScreen("home");
-      resetAll();
-    } catch (error) {
-      console.error("Error saving advice:", error);
-      Alert.alert("エラー", "アドバイスの保存に失敗しました");
-    } finally {
-      setIsSaving(false);
+      })
+        .then(() => {
+          console.log("Advice saved successfully");
+        })
+        .catch((error) => {
+          console.error("Error saving advice:", error);
+          // 保存失敗時は保存済み状態を解除
+          setIsSaved(false);
+        });
     }
   };
+
+  const handleCloseAdvice = () => {
+    // ホーム画面に戻る（保存はしない）
+    navigateToScreen("home");
+    resetAll();
+  };
+
 
   if (!photoData) {
     return (
@@ -189,6 +191,19 @@ export default function AdviceScreen() {
           showsVerticalScrollIndicator={false}
         >
           <Animated.View style={{ opacity: fadeAnim }}>
+            {uploadedImages.photoUri && (
+              <View style={styles.sectionContainer}>
+                <Text style={styles.sectionTitle}>撮影した写真</Text>
+                <View style={styles.photoContainer}>
+                  <Image
+                    source={{ uri: uploadedImages.photoUri }}
+                    style={styles.photoImage}
+                    resizeMode="contain"
+                  />
+                </View>
+              </View>
+            )}
+
             <View style={styles.sectionContainer}>
               <Text style={styles.sectionTitle}>撮影データ</Text>
               <View style={styles.dataSummary}>
@@ -381,37 +396,37 @@ export default function AdviceScreen() {
 
             <View style={styles.actionButtons}>
               <TouchableOpacity
-                style={styles.primaryButton}
+                style={[
+                  styles.saveButton,
+                  (!aiAdvice || isSaved) && styles.saveButtonDisabled,
+                ]}
+                onPress={handleSaveAdvice}
+                disabled={!aiAdvice || isSaved}
+                testID="save-advice-button"
+              >
+                <Text
+                  style={[
+                    styles.saveButtonText,
+                    (!aiAdvice || isSaved) && styles.saveButtonTextDisabled,
+                  ]}
+                >
+                  {isSaved ? "保存済み" : "アドバイスを保存する"}
+                </Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={styles.closeButton}
                 onPress={handleCloseAdvice}
                 testID="close-advice-button"
-                disabled={isSaving}
               >
-                {isSaving ? (
-                  <ActivityIndicator color="#fff" />
-                ) : (
-                  <Text style={styles.primaryButtonText}>
-                    アドバイスを閉じる
-                  </Text>
-                )}
+                <Text style={styles.closeButtonText}>
+                  アドバイスを閉じる
+                </Text>
               </TouchableOpacity>
             </View>
           </Animated.View>
         </ScrollView>
       </SafeAreaView>
-
-      <Modal
-        visible={isSaving}
-        transparent
-        animationType="fade"
-        statusBarTranslucent
-      >
-        <View style={styles.savingOverlay}>
-          <View style={styles.savingContent}>
-            <ActivityIndicator size="large" color="#2e7d46" />
-            <Text style={styles.savingText}>保存中...</Text>
-          </View>
-        </View>
-      </Modal>
     </View>
   );
 }
@@ -465,6 +480,21 @@ const styles = StyleSheet.create({
   },
   sectionContainer: {
     marginBottom: 24,
+  },
+  photoContainer: {
+    backgroundColor: "#fff",
+    borderRadius: 16,
+    overflow: "hidden" as const,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
+    elevation: 3,
+  },
+  photoImage: {
+    width: "100%",
+    height: 300,
+    backgroundColor: "#f5f7f5",
   },
   dataSummary: {
     backgroundColor: "#fff",
@@ -608,6 +638,42 @@ const styles = StyleSheet.create({
   },
   actionButtons: {
     gap: 12,
+  },
+  saveButton: {
+    backgroundColor: "#2e7d46",
+    borderRadius: 12,
+    paddingVertical: 16,
+    alignItems: "center" as const,
+    shadowColor: "#2e7d46",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  saveButtonDisabled: {
+    backgroundColor: "#d0d7d0",
+    shadowOpacity: 0,
+  },
+  saveButtonText: {
+    fontSize: 16,
+    fontWeight: "600" as const,
+    color: "#fff",
+  },
+  saveButtonTextDisabled: {
+    color: "#8a9a8f",
+  },
+  closeButton: {
+    backgroundColor: "#fff",
+    borderRadius: 12,
+    paddingVertical: 16,
+    alignItems: "center" as const,
+    borderWidth: 2,
+    borderColor: "#2e7d46",
+  },
+  closeButtonText: {
+    fontSize: 16,
+    fontWeight: "600" as const,
+    color: "#2e7d46",
   },
   primaryButton: {
     backgroundColor: "#2e7d46",
@@ -792,29 +858,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     lineHeight: 26,
     color: "#495057",
-  },
-  savingOverlay: {
-    flex: 1,
-    backgroundColor: "rgba(0, 0, 0, 0.5)",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  savingContent: {
-    backgroundColor: "#fff",
-    borderRadius: 16,
-    padding: 32,
-    alignItems: "center",
-    gap: 16,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 8,
-  },
-  savingText: {
-    fontSize: 18,
-    fontWeight: "600",
-    color: "#1a4d2e",
   },
 });
 

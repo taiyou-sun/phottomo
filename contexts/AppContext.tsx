@@ -80,6 +80,7 @@ const [AppContextProvider, useApp] = createContextHook(() => {
   const [surveyAnswers, setSurveyAnswers] = useState<SurveyAnswers>({});
   const [coachingStyle, setCoachingStyle] = useState<CoachingStyle>("phottomo");
   const [selectedAdviceHistory, setSelectedAdviceHistory] = useState<AdviceHistory | null>(null);
+  const [adviceHistoryCache, setAdviceHistoryCache] = useState<AdviceHistory[]>([]);
 
   useEffect(() => {
     const loadCoachingStyle = async () => {
@@ -144,12 +145,14 @@ const [AppContextProvider, useApp] = createContextHook(() => {
     surveyAnswers,
     coachingStyle,
     selectedAdviceHistory,
+    adviceHistoryCache,
     navigateToScreen,
     setPhotoData,
     setUploadedImages,
     setSurveyAnswers,
     setCoachingStyle: saveCoachingStyle,
     setSelectedAdviceHistory,
+    setAdviceHistoryCache,
     resetSurveyAnswers,
     resetPhotoData,
     resetUploadedImages,

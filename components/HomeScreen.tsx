@@ -9,7 +9,7 @@ import {
   Image,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { Camera, Zap, Search, Settings, FileImage } from "lucide-react-native";
+import { Camera, Zap, Settings } from "lucide-react-native";
 import { useApp } from "@/contexts/AppContext";
 
 export default function HomeScreen() {
@@ -186,19 +186,6 @@ export default function HomeScreen() {
             }
             onPress={() => navigateToScreen("survey")}
             delay={200}
-          />
-
-          <ActionCard
-            icon={Search}
-            title="レンズを探す"
-            description={
-              <Text style={styles.cardDescription}>
-                最適な<Text style={styles.highlightText}>FUJIFILMレンズ</Text>
-                を診断
-              </Text>
-            }
-            onPress={() => navigateToScreen("lensSurvey")}
-            delay={300}
           />
         </View>
       </ScrollView>
