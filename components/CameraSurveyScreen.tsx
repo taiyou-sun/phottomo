@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect } from "react";
 import {
   View,
   Text,
@@ -10,25 +10,25 @@ import {
   Platform,
   ActivityIndicator,
   Linking,
-} from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { ChevronLeft, Send } from 'lucide-react-native';
-import { useApp } from '@/contexts/AppContext';
-import { useRorkAgent } from '@rork-ai/toolkit-sdk';
+} from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { ChevronLeft, Send } from "lucide-react-native";
+import { useApp } from "@/contexts/AppContext";
+import { useRorkAgent } from "@rork-ai/toolkit-sdk";
 
 // .envから環境変数を読み込む（EXPO_PUBLIC_プレフィックス付き）
 const GEMINI_API_URL: string = process.env.EXPO_PUBLIC_GEMINI_API_URL || "";
 const GEMINI_API_KEY: string = process.env.EXPO_PUBLIC_GEMINI_API_KEY || "";
 
 if (!GEMINI_API_URL || !GEMINI_API_KEY) {
-  console.warn('GEMINI_API_URL または GEMINI_API_KEY が .env に設定されていません');
+  console.warn(
+    "GEMINI_API_URL または GEMINI_API_KEY が .env に設定されていません"
+  );
 }
-
-
 
 export default function CameraSurveyScreen() {
   const { navigateToScreen } = useApp();
-  const [input, setInput] = useState<string>('');
+  const [input, setInput] = useState<string>("");
   const scrollViewRef = useRef<ScrollView>(null);
   const { messages, sendMessage } = useRorkAgent({
     tools: {},
@@ -36,10 +36,12 @@ export default function CameraSurveyScreen() {
 
   useEffect(() => {
     if (messages.length === 0) {
-        sendMessage({
-          role: 'assistant',
-          parts: [{ type: 'text', text: 'ご所望のカメラの情報を教えてください！' }],
-        });
+      sendMessage({
+        role: "assistant",
+        parts: [
+          { type: "text", text: "ご所望のカメラの情報を教えてください！" },
+        ],
+      });
     }
   }, [messages.length, sendMessage]);
 
@@ -53,23 +55,22 @@ export default function CameraSurveyScreen() {
     if (!input.trim()) return;
 
     const userText = input.trim();
-    console.log('Sending message:', userText);
+    console.log("Sending message:", userText);
 
     // まず UI 側は既存の sendMessage を使ってユーザーメッセージを追加
     sendMessage(userText);
-    setInput('');
+    setInput("");
 
     // camera_lens_combinations.json を読み込んでプロンプトに追加
-    let raw = '';
+    let raw = "";
     try {
       // Metro では require で静的なJSONを読み込める
       // components から一つ上のパスにある camera_lens_combinations.json を想定
       // eslint-disable-next-line @typescript-eslint/no-var-requires
-      const cameraData = require('../camera_lens_combinations.json');
+      const cameraData = require("../camera_lens_combinations.json");
       raw = JSON.stringify(cameraData);
-
     } catch (e) {
-      console.warn('camera_lens_combinations.json 読み込み失敗:', e);
+      console.warn("camera_lens_combinations.json 読み込み失敗:", e);
     }
 
     // システムプロンプト（最初のメッセージとして使用）
@@ -105,12 +106,12 @@ ${raw}`;
       // 最初にシステムプロンプトをユーザーメッセージとして追加
       if (contents.length === 0) {
         contents.push({
-          role: 'user',
-          parts: [{ text: systemPrompt }]
+          role: "user",
+          parts: [{ text: systemPrompt }],
         });
         contents.push({
-          role: 'model',
-          parts: [{ text: 'ご所望のカメラの情報を教えてください！' }]
+          role: "model",
+          parts: [{ text: "ご所望のカメラの情報を教えてください！" }],
         });
       }
 
@@ -118,45 +119,45 @@ ${raw}`;
       for (const msg of msgs) {
         // 初回の挨拶メッセージはスキップ（既に上で追加済み）
         const text = (msg.parts || [])
-          .filter((p: any) => p.type === 'text')
-          .map((p: any) => (typeof p.text === 'string' ? p.text : ''))
-          .join(' ')
+          .filter((p: any) => p.type === "text")
+          .map((p: any) => (typeof p.text === "string" ? p.text : ""))
+          .join(" ")
           .trim();
 
-        if (text === 'ご所望のカメラの情報を教えてください！') {
+        if (text === "ご所望のカメラの情報を教えてください！") {
           continue;
         }
 
-        const role = isUserFromMessage(msg) ? 'user' : 'model';
+        const role = isUserFromMessage(msg) ? "user" : "model";
         if (text) {
           contents.push({
             role: role,
-            parts: [{ text: text }]
+            parts: [{ text: text }],
           });
         }
       }
 
       // 最新のユーザーメッセージを追加
       contents.push({
-        role: 'user',
-        parts: [{ text: userText }]
+        role: "user",
+        parts: [{ text: userText }],
       });
 
       return contents;
     };
 
     const contents = buildGeminiContents(messages);
-    console.log('=== Gemini API Request ===');
-    console.log('Contents length:', contents.length);
-    console.log('Contents:', JSON.stringify(contents, null, 2));
+    console.log("=== Gemini API Request ===");
+    console.log("Contents length:", contents.length);
+    console.log("Contents:", JSON.stringify(contents, null, 2));
 
     try {
       // fetch APIを使って直接Gemini APIを呼び出す
       const apiUrl = `${GEMINI_API_URL}?key=${GEMINI_API_KEY}`;
 
-      console.log('API URL:', GEMINI_API_URL);
-      console.log('API Key exists:', !!GEMINI_API_KEY);
-      console.log('Sending request...');
+      console.log("API URL:", GEMINI_API_URL);
+      console.log("API Key exists:", !!GEMINI_API_KEY);
+      console.log("Sending request...");
 
       const requestBody = JSON.stringify({
         contents: contents,
@@ -165,56 +166,60 @@ ${raw}`;
         },
       });
 
-      console.log('Request body length:', requestBody.length);
+      console.log("Request body length:", requestBody.length);
 
       const response = await fetch(apiUrl, {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: requestBody,
       });
 
-      console.log('Response received!');
-      console.log('Response status:', response.status);
-      console.log('Response ok:', response.ok);
+      console.log("Response received!");
+      console.log("Response status:", response.status);
+      console.log("Response ok:", response.ok);
 
       if (!response.ok) {
         const errorText = await response.text();
-        console.error('Gemini API error response (text):', errorText);
+        console.error("Gemini API error response (text):", errorText);
         let errorData;
         try {
           errorData = JSON.parse(errorText);
-          console.error('Gemini API error response (parsed):', errorData);
+          console.error("Gemini API error response (parsed):", errorData);
         } catch (e) {
-          console.error('Could not parse error response as JSON');
+          console.error("Could not parse error response as JSON");
         }
         throw new Error(`API error: ${response.status} ${response.statusText}`);
       }
 
       const responseText = await response.text();
-      console.log('Response text length:', responseText.length);
+      console.log("Response text length:", responseText.length);
 
       const data = JSON.parse(responseText);
-      console.log('Gemini API response:', data);
+      console.log("Gemini API response:", data);
 
       // レスポンスの検証とテキストの抽出
       if (data.candidates && data.candidates.length > 0) {
         const candidate = data.candidates[0];
 
         // Safety や Recitation など、ブロックされた理由を確認
-        if (candidate.finishReason !== 'STOP') {
-          console.warn(`生成がブロックされました。理由: ${candidate.finishReason}`);
-          throw new Error(`AI応答が生成されませんでした。理由コード: ${candidate.finishReason}`);
+        if (candidate.finishReason !== "STOP") {
+          console.warn(
+            `生成がブロックされました。理由: ${candidate.finishReason}`
+          );
+          throw new Error(
+            `AI応答が生成されませんでした。理由コード: ${candidate.finishReason}`
+          );
         }
 
         // テキストを抽出
         const aiText = candidate.content?.parts?.[0]?.text;
 
-        if (aiText && typeof aiText === 'string') {
+        if (aiText && typeof aiText === "string") {
           sendMessage({
-            role: 'assistant',
-            parts: [{ type: 'text', text: aiText }],
+            role: "assistant",
+            parts: [{ type: "text", text: aiText }],
           });
           return;
         }
@@ -223,21 +228,24 @@ ${raw}`;
       // 応答が空、または予期せぬ形式だった場合
       console.error("AIからの応答テキストが空でした。", data);
       throw new Error("AIから有効なテキスト応答が返されませんでした。");
-
     } catch (error) {
       // ネットワークエラーなど、リクエスト自体が失敗した場合
       console.error("Gemini APIリクエスト中にエラーが発生:", error);
       sendMessage({
-        role: 'assistant',
-        parts: [{ type: 'text', text: 'エラーが発生しました。もう一度お試しください。' }],
+        role: "assistant",
+        parts: [
+          {
+            type: "text",
+            text: "エラーが発生しました。もう一度お試しください。",
+          },
+        ],
       });
       throw error;
     }
-
   };
 
   const handleBack = () => {
-    navigateToScreen('home');
+    navigateToScreen("home");
   };
 
   // Markdown をレンダリングするコンポーネント。まず動的に人気ライブラリを試し、なければ簡易フォールバックを使う。
@@ -245,7 +253,7 @@ ${raw}`;
     let MarkdownLib: any = null;
     try {
       // eslint-disable-next-line @typescript-eslint/no-var-requires
-      MarkdownLib = require('react-native-markdown-display').default;
+      MarkdownLib = require("react-native-markdown-display").default;
     } catch (e) {
       MarkdownLib = null;
     }
@@ -263,7 +271,9 @@ ${raw}`;
         <MarkdownLib
           style={mdStyle}
           onLinkPress={(url: string) => {
-            Linking.openURL(url).catch((err) => console.error('Failed to open URL:', err));
+            Linking.openURL(url).catch((err) =>
+              console.error("Failed to open URL:", err)
+            );
             return true;
           }}
         >
@@ -273,13 +283,18 @@ ${raw}`;
     }
 
     // フォールバック: とりあえず行ごとに簡易パースして表示
-    const lines = content.split('\n');
+    const lines = content.split("\n");
     return (
       <View>
         {lines.map((line, idx) => {
-          if (!line.trim()) return <Text key={idx} style={styles.assistantText}>{"\n"}</Text>;
+          if (!line.trim())
+            return (
+              <Text key={idx} style={styles.assistantText}>
+                {"\n"}
+              </Text>
+            );
           if (/^#{1,6}\s+/.test(line)) {
-            const text = line.replace(/^#{1,6}\s+/, '');
+            const text = line.replace(/^#{1,6}\s+/, "");
             return (
               <Text key={idx} style={styles.mdHeading}>
                 {text}
@@ -287,27 +302,42 @@ ${raw}`;
             );
           }
           if (/^[-*+]>?\s+/.test(line) || /^\d+\.\s+/.test(line)) {
-            const text = line.replace(/^[-*+]>?\s+|^\d+\.\s+/, '');
+            const text = line.replace(/^[-*+]>?\s+|^\d+\.\s+/, "");
             return (
               <Text key={idx} style={styles.mdList}>
-                {'• '}{text}
+                {"• "}
+                {text}
               </Text>
             );
           }
 
           // インラインスタイルの簡易処理: **bold**, *italic*, `code`
-          const segments = line.split(/(\*\*[^*]+\*\*|\*[^*]+\*|`[^`]+`)/g).filter(Boolean);
+          const segments = line
+            .split(/(\*\*[^*]+\*\*|\*[^*]+\*|`[^`]+`)/g)
+            .filter(Boolean);
           return (
             <Text key={idx} style={styles.assistantText}>
               {segments.map((seg, i) => {
                 if (/^\*\*.*\*\*$/.test(seg)) {
-                  return <Text key={i} style={{ fontWeight: '700' }}>{seg.replace(/\*\*/g, '')}</Text>;
+                  return (
+                    <Text key={i} style={{ fontWeight: "700" }}>
+                      {seg.replace(/\*\*/g, "")}
+                    </Text>
+                  );
                 }
                 if (/^\*.*\*$/.test(seg)) {
-                  return <Text key={i} style={{ fontStyle: 'italic' }}>{seg.replace(/\*/g, '')}</Text>;
+                  return (
+                    <Text key={i} style={{ fontStyle: "italic" }}>
+                      {seg.replace(/\*/g, "")}
+                    </Text>
+                  );
                 }
                 if (/^`.*`$/.test(seg)) {
-                  return <Text key={i} style={styles.mdCodeInline}>{seg.replace(/`/g, '')}</Text>;
+                  return (
+                    <Text key={i} style={styles.mdCodeInline}>
+                      {seg.replace(/`/g, "")}
+                    </Text>
+                  );
                 }
                 return <Text key={i}>{seg}</Text>;
               })}
@@ -321,29 +351,40 @@ ${raw}`;
   const renderMessage = (message: any, index: number) => {
     // role フィールドは環境やライブラリで変わるため、いくつかの候補で判定する
     const isUser = isUserFromMessage(message);
-    const textParts = message.parts.filter((p: any) => p.type === 'text');
-    
+    const textParts = message.parts.filter((p: any) => p.type === "text");
+
     if (textParts.length === 0) return null;
 
     // row wrapper を使って左右配置を制御（より安定する）
     return (
       <View
         key={message.id || index}
-        style={{ flexDirection: 'row', justifyContent: isUser ? 'flex-end' : 'flex-start' }}
+        style={{
+          flexDirection: "row",
+          justifyContent: isUser ? "flex-end" : "flex-start",
+        }}
       >
-        <View style={[styles.messageBubble, isUser ? styles.userBubble : styles.assistantBubble]}>
-          {textParts.map((part: any, partIndex: number) => (
+        <View
+          style={[
+            styles.messageBubble,
+            isUser ? styles.userBubble : styles.assistantBubble,
+          ]}
+        >
+          {textParts.map((part: any, partIndex: number) =>
             isUser ? (
               <Text
                 key={partIndex}
-                style={[styles.messageText, isUser ? styles.userText : styles.assistantText]}
+                style={[
+                  styles.messageText,
+                  isUser ? styles.userText : styles.assistantText,
+                ]}
               >
                 {part.text}
               </Text>
             ) : (
               <MarkdownView key={partIndex} content={part.text} />
             )
-          ))}
+          )}
         </View>
       </View>
     );
@@ -353,16 +394,23 @@ ${raw}`;
   const isUserFromMessage = (m: any): boolean => {
     if (!m) return false;
     // 直接 role がある場合
-    if (typeof m.role === 'string') {
+    if (typeof m.role === "string") {
       const r = m.role.toLowerCase();
-      if (r === 'user' || r === 'me' || r === 'human' || r === 'client') return true;
-      if (r === 'assistant' || r === 'bot' || r === 'system') return false;
+      if (r === "user" || r === "me" || r === "human" || r === "client")
+        return true;
+      if (r === "assistant" || r === "bot" || r === "system") return false;
     }
     // その他の候補フィールド
-    if (m.sender && String(m.sender).toLowerCase().includes('user')) return true;
-    if (m.from && String(m.from).toLowerCase().includes('user')) return true;
+    if (m.sender && String(m.sender).toLowerCase().includes("user"))
+      return true;
+    if (m.from && String(m.from).toLowerCase().includes("user")) return true;
     if (m.isUser === true) return true;
-    if (m.author && m.author.role && String(m.author.role).toLowerCase().includes('user')) return true;
+    if (
+      m.author &&
+      m.author.role &&
+      String(m.author.role).toLowerCase().includes("user")
+    )
+      return true;
     // デフォルトは assistant 側とみなす
     return false;
   };
@@ -370,11 +418,11 @@ ${raw}`;
   // デバッグ: messages の構造を開発中のみ出力
   useEffect(() => {
     // console.log を残しておくと実行時にどのフィールドに role 情報が入るか確認できる
-    console.log('Messages length:', messages.length);
+    console.log("Messages length:", messages.length);
   }, [messages]);
 
   return (
-    <SafeAreaView style={styles.container} edges={['top']}>
+    <SafeAreaView style={styles.container} edges={["top"]}>
       <View style={styles.header}>
         <TouchableOpacity
           onPress={handleBack}
@@ -388,7 +436,7 @@ ${raw}`;
       </View>
 
       <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
         style={styles.keyboardView}
         keyboardVerticalOffset={0}
       >
@@ -402,12 +450,13 @@ ${raw}`;
           }}
         >
           {messages.map((message, index) => renderMessage(message, index))}
-          
-          {messages.length > 0 && messages[messages.length - 1].role === 'user' && (
-            <View style={[styles.messageBubble, styles.assistantBubble]}>
-              <ActivityIndicator size="small" color="#1a4d2e" />
-            </View>
-          )}
+
+          {messages.length > 0 &&
+            messages[messages.length - 1].role === "user" && (
+              <View style={[styles.messageBubble, styles.assistantBubble]}>
+                <ActivityIndicator size="small" color="#1a4d2e" />
+              </View>
+            )}
         </ScrollView>
 
         <View style={styles.inputContainer}>
@@ -432,7 +481,7 @@ ${raw}`;
           >
             <Send
               size={20}
-              color={input.trim() ? '#fff' : '#a0b0a8'}
+              color={input.trim() ? "#fff" : "#a0b0a8"}
               strokeWidth={2}
             />
           </TouchableOpacity>
@@ -445,25 +494,25 @@ ${raw}`;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f7f5',
+    backgroundColor: "#f5f7f5",
   },
   header: {
-    flexDirection: 'row' as const,
-    alignItems: 'center' as const,
-    justifyContent: 'space-between' as const,
+    flexDirection: "row" as const,
+    alignItems: "center" as const,
+    justifyContent: "space-between" as const,
     paddingHorizontal: 20,
     paddingVertical: 16,
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
     borderBottomWidth: 1,
-    borderBottomColor: '#e8ebe8',
+    borderBottomColor: "#e8ebe8",
   },
   backButton: {
     padding: 8,
   },
   appName: {
     fontSize: 20,
-    fontWeight: '700' as const,
-    color: '#1a4d2e',
+    fontWeight: "700" as const,
+    color: "#1a4d2e",
     letterSpacing: 0.5,
   },
   placeholder: {
@@ -480,25 +529,25 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   messageBubble: {
-    maxWidth: '80%',
+    maxWidth: "80%",
     padding: 12,
     borderRadius: 16,
     marginVertical: 4,
   },
   userBubble: {
-    backgroundColor: '#2e7d46',
+    backgroundColor: "#2e7d46",
     borderBottomRightRadius: 4,
     borderBottomLeftRadius: 16,
     marginLeft: 40,
     marginRight: 0,
   },
   assistantBubble: {
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
     borderBottomLeftRadius: 4,
     borderBottomRightRadius: 16,
     marginRight: 40,
     marginLeft: 0,
-    shadowColor: '#000',
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.05,
     shadowRadius: 3,
@@ -509,60 +558,60 @@ const styles = StyleSheet.create({
     lineHeight: 22,
   },
   userText: {
-    color: '#fff',
+    color: "#fff",
     fontSize: 16,
     lineHeight: 22,
   },
   assistantText: {
-    color: '#1a4d2e',
+    color: "#1a4d2e",
     fontSize: 16,
     lineHeight: 22,
   },
   inputContainer: {
-    flexDirection: 'row' as const,
-    alignItems: 'flex-end' as const,
+    flexDirection: "row" as const,
+    alignItems: "flex-end" as const,
     padding: 16,
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
     borderTopWidth: 1,
-    borderTopColor: '#e8ebe8',
+    borderTopColor: "#e8ebe8",
     gap: 12,
   },
   input: {
     flex: 1,
-    backgroundColor: '#f5f7f5',
+    backgroundColor: "#f5f7f5",
     borderRadius: 20,
     paddingHorizontal: 16,
     paddingVertical: 10,
     fontSize: 16,
-    color: '#1a4d2e',
+    color: "#1a4d2e",
     maxHeight: 100,
   },
   sendButton: {
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: '#2e7d46',
-    alignItems: 'center' as const,
-    justifyContent: 'center' as const,
+    backgroundColor: "#2e7d46",
+    alignItems: "center" as const,
+    justifyContent: "center" as const,
   },
   sendButtonDisabled: {
-    backgroundColor: '#e8ebe8',
+    backgroundColor: "#e8ebe8",
   },
   mdHeading: {
     fontSize: 18,
-    fontWeight: '700',
-    color: '#1a4d2e',
+    fontWeight: "700",
+    color: "#1a4d2e",
     marginBottom: 6,
   },
   mdList: {
     fontSize: 16,
-    color: '#1a4d2e',
+    color: "#1a4d2e",
     marginLeft: 6,
     marginBottom: 4,
   },
   mdCodeInline: {
-    fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
-    backgroundColor: '#f0f0f0',
+    fontFamily: Platform.OS === "ios" ? "Menlo" : "monospace",
+    backgroundColor: "#f0f0f0",
     paddingHorizontal: 6,
     paddingVertical: 2,
     borderRadius: 4,
